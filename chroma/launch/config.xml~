@@ -1,0 +1,11 @@
+<launch>
+	<arg name="image_topic"/>
+	<arg name="project_path"/>
+	<arg name="playback_topics"/>
+	<arg name="display"/>
+	<arg name="chroma_width" />
+	<arg name="chroma_height"/>
+
+	<node pkg="chroma" type="chroma" name="chroma" output="screen" respawn="true">
+	</node>
+</launch>

@@ -1,0 +1,19 @@
+<launch>
+	<arg name="image_topic"/>
+	<arg name="image_out_topic"/>
+	<arg name="project_path"/>
+	<arg name="playback_topics"/>
+	<arg name="display"/>
+	<arg name="chroma_width" />
+	<arg name="chroma_height"/>
+
+	<node pkg="chroma" type="chroma" name="chroma" output="screen">
+		<param name="project_path" value="$(arg project_path)"/>
+		<param name="image_topic" value="$(arg image_topic)" />
+		<param name="image_out_topic" value="$(arg image_out_topic)" />
+		<param name="chroma_width"  value="$(arg chroma_width)"/>
+		<param name="chroma_height"  value="$(arg chroma_height)"/>
+		<param name="playback_topics" type="bool" value="$(arg playback_topics)"/>
+		<param name="display" type="bool" value="$(arg display)"/>
+	</node>
+</launch>

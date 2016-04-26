@@ -1,0 +1,28 @@
+<launch>
+	<arg name="depth_topic"/>
+	<arg name="depth_out_image_topic"/>
+	<arg name="depth_out_dif_topic"/>
+	<arg name="project_path"/>
+	<arg name="playback_topics"/>
+	<arg name="display"/>
+	<arg name="depth_width"/>
+	<arg name="depth_height"/>
+	<arg name="min_depth"/>
+	<arg name="max_depth"/>
+	<arg name="hor_field"/>
+	<arg name="ver_field"/>
+
+	<node pkg="depth" type="depth" name="depth" output="screen" >
+		<param name="project_path" value="$(arg project_path)"/>
+		<param name="depth_topic" value="$(arg depth_topic)" />
+		<param name="depth_out_image_topic" value="$(arg depth_out_image_topic)" />
+		<param name="depth_width"  value="$(arg depth_width)"/>
+		<param name="depth_height"  value="$(arg depth_height)"/>
+		<param name="min_depth"  value="$(arg min_depth)"/>
+		<param name="min_depth"  value="$(arg min_depth)"/>
+		<param name="hor_field"  value="$(arg hor_field)"/>
+		<param name="ver_field"  value="$(arg ver_field)"/>
+		<param name="playback_topics" type="bool" value="$(arg playback_topics)"/>
+		<param name="display" type="bool" value="$(arg display)"/>
+	</node>
+</launch>
