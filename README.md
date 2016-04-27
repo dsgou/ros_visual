@@ -1,11 +1,7 @@
-
-##ros_visual##
-
 ### Description ###
 The concept of this project is to detect and track people in indoor environment and produce some statistics regarding
-their movement and physique(e.g. height). 
-It consists of 4 catkin packages, the depth, chroma and fusion packages comprise the process described above while ros_visual is a high level package to help
-launch all the nodes and automate the process. 
+their movement and physique(e.g. height).
+
 
 * **Chroma**
  * Description: 
@@ -30,7 +26,8 @@ launch all the nodes and automate the process.
 	   * RGB image difference
 	   * depth image difference
 	   * depth image difference
-  
+* **ros_visual**
+ * Description: High level package to help launch all the nodes and automate the process, only contains launch files
   
 ### Set up ###
 
