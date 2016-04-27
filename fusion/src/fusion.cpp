@@ -210,7 +210,7 @@ void Fusion_processing::writeCSV(Fusion_processing::People& collection, string p
 			Rect box = collection.tracked_boxes[i];
 			Fusion_processing::Position pos = collection.tracked_pos[i];
 			storage
-				<<timeBuf<<int(tv.tv_usec/10000)<<","
+				<<timeBuf<<int(tv.tv_usec/10000)<<"\t"
 				<<i<<"\t"
 				<<box.x<<"\t"
 				<<box.y<<"\t"
