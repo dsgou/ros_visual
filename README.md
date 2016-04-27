@@ -1,8 +1,5 @@
-## README ##
 
-The example instructions are for Ubuntu 14.04. Please check your os version and replace indigo with the respective version.
-
-* ros_visual
+##ros_visual##
 
 ### Description ###
 The concept of this project is to detect and track people in indoor environment and produce some statistics regarding
@@ -36,6 +33,8 @@ launch all the nodes and automate the process.
   
   
 ### Set up ###
+
+* The example instructions are for Ubuntu 14.04. Please check your os version and replace indigo with the respective version.
 
 * Install ROS on your system by following the installation instructions (www.ros.org), install according to your OS: ```sudo apt-get install ros-indigo-desktop-full ```
 * Install opencv either as a ROS package or standlone depending on your version ```sudo apt-get install ros-indigo-vision-opencv```
