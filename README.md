@@ -11,7 +11,7 @@ launch all the nodes and automate the process.
  * Description: 
    Processes the RGB image to be more useful and publishes the processed version and the image difference  
  * Input : 
- 	   *RGB image
+ 	   * RGB image
  * Output: 
  	   * processed RGB image
 	   * RGB image difference
