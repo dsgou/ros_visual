@@ -4,6 +4,30 @@ The example instructions are for Ubuntu 14.04. Please check your os version and 
 
 * ros_visual
 
+### Description ###
+The concept of this project is to detect and track people in indoor environment and produce some statistics regarding
+their movement and physique(e.g. height). 
+It consists of 4 catkin packages, the depth, chroma and fusion packages comprise the process described above while ros_visual is a high level package to help
+launch all the nodes and automate the process. 
+
+* Chroma
+  ⋅⋅* Description: Processes the RGB image to be more useful and publishes the processed version and the image difference  
+  ⋅⋅* Input : RGB image
+  ⋅⋅* Output: ⋅⋅* processed RGB image
+			  ⋅⋅* RGB image difference
+* Depth
+  ⋅⋅* Description: Processes the depth image and corrects the holes and publishes the processed version and the depth difference
+  ⋅⋅* Input : depth image
+  ⋅⋅* Output: ⋅⋅* processed depth image
+			  ⋅⋅* depth image difference
+* Fusion
+  ⋅⋅* Description: Combines the output of the Chroma and Depth nodes and produces high level statistics
+  ⋅⋅* Input : ⋅⋅* RGB image
+			  ⋅⋅* RGB image difference
+			  ⋅⋅* depth image difference
+			  ⋅⋅* depth image difference
+  
+  
 ### Set up ###
 
 * Install ROS on your system by following the installation instructions (www.ros.org), install according to your OS: ```sudo apt-get install ros-indigo-desktop-full ```
@@ -32,7 +56,8 @@ check where your system has  stored it and add the directory in the CMAkeList.tx
 
 
 ### Run ###
-
+* The ros_visual package serves as a high level package to automate the process
+* 
 * The launch/config.launch file contains the run configurations of the project
 * Edit according to your needs
 * Make project : catkin_make
