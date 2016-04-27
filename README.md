@@ -18,19 +18,22 @@ launch all the nodes and automate the process.
 
 * Chroma
  * Description: Processes the RGB image to be more useful and publishes the processed version and the image difference  
- * Input : RGB image
- * Output: * processed RGB image
+ * Input : 
+ 	   *RGB image
+ * Output: 
+ 	   * processed RGB image
 	   * RGB image difference
 * Depth
  * Description: Processes the depth image and corrects the holes and publishes the processed version and the depth difference
  * Input : 
-  * depth image
+  	   * depth image
  * Output: 
-  * processed depth image
-  * depth image difference
+ 	   * processed depth image
+  	   * depth image difference
 * Fusion
  * Description: Combines the output of the Chroma and Depth nodes and produces high level statistics
- * Input : * RGB image
+ * Input : 
+  	   * RGB image
 	   * RGB image difference
 	   * depth image difference
 	   * depth image difference
