@@ -70,7 +70,7 @@ class Depth_processing
 		void estimateForeground(Mat& src1, Mat& src2, Mat& dst);
 		
 		//Detection and tracking of blobs
-		void detectBlobs(const Mat& src, vector< Rect_<int> >& colour_areas, int range);
+		void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range);
 		void track(vector< Rect_<int> >& current, People& collection, int rank = 3, float threshold = 0.2);
 		
 		//Depth estimation functions

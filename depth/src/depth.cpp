@@ -177,7 +177,7 @@ void Depth_processing::depthCb(const sensor_msgs::ImageConstPtr& msg)
  * 
  * RETURN --
  */
-void Depth_processing::detectBlobs(const Mat& src, vector< Rect_<int> >& colour_areas, int range)
+void Depth_processing::detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range)
 {
 	float detectionFactor = 0.1;
 	float mergeFactor = 0.1;

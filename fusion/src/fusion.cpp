@@ -6,7 +6,8 @@ Fusion_processing::Fusion_processing()
 {
 	 //Getting the parameters specified by the launch file 
 	ros::NodeHandle local_nh("~");
-	local_nh.param("image_topic", image_topic, string("/chroma_proc/image_raw"));
+	local_nh.param("image_topic", image_topic, string("/chroma_proc/image"));
+	local_nh.param("image_dif_topic", image_dif_topic, string("/chroma_proc/image_dif"));
 	local_nh.param("depth_topic", depth_topic, string("/depth_proc/image"));
 	local_nh.param("depth_dif_topic", depth_dif_topic, string("/depth_proc/image_dif"));
 	local_nh.param("project_path",path_, string(""));
@@ -25,10 +26,11 @@ Fusion_processing::Fusion_processing()
 	
     
     ImageSubscriber *image_sub  = new ImageSubscriber(it_, image_topic, 3 );
+    ImageSubscriber *image_dif_sub  = new ImageSubscriber(it_, image_dif_topic, 3 );
     ImageSubscriber *depth_sub  = new ImageSubscriber(it_, depth_topic, 3 );
     ImageSubscriber *depth_dif_sub  = new ImageSubscriber(it_, depth_dif_topic, 3 );
-	sync = new message_filters::Synchronizer< MySyncPolicy >( MySyncPolicy( 5 ), *image_sub, *depth_sub, *depth_dif_sub );
-    sync->registerCallback( boost::bind( &Fusion_processing::callback, this, _1, _2, _3 ) );
+	sync = new message_filters::Synchronizer< MySyncPolicy >( MySyncPolicy( 5 ), *image_sub, *image_dif_sub, *depth_sub, *depth_dif_sub );
+    sync->registerCallback( boost::bind( &Fusion_processing::callback, this, _1, _2, _3, _4 ) );
     
     if(write_csv)
     {
@@ -45,39 +47,44 @@ Fusion_processing::~Fusion_processing()
 	
 }
 
-void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::ImageConstPtr& depth_dif_msg)
+void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, const sensor_msgs::ImageConstPtr& chroma_dif_msg, const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::ImageConstPtr& depth_dif_msg)
 {
 	Mat fusion;
 	Mat chroma;
+	Mat chroma_dif;
 	Mat depth;
 	Mat depth_dif;
 	vector< Rect_<int> > fusion_rects;
 	cv_bridge::CvImagePtr cv_ptr;
+	cv_bridge::CvImagePtr cv_ptr_dif;
 	cv_bridge::CvImagePtr cv_ptr_depth;
 	cv_bridge::CvImagePtr cv_ptr_depth_dif;
 	
 	
 	cv_ptr = cv_bridge::toCvCopy(chroma_msg, sensor_msgs::image_encodings::MONO8);	
+	cv_ptr_dif = cv_bridge::toCvCopy(chroma_dif_msg, sensor_msgs::image_encodings::MONO8);	
 	cv_ptr_depth = cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_32FC1);
 	cv_ptr_depth_dif = cv_bridge::toCvCopy(depth_dif_msg, sensor_msgs::image_encodings::MONO8);
 	
 	chroma = (cv_ptr->image).clone();
+	chroma_dif = (cv_ptr_dif->image).clone();
 	depth = (cv_ptr_depth->image).clone();
 	depth_dif = (cv_ptr_depth_dif->image).clone();
-	imshow("chroma", chroma);
-	moveWindow("chroma", 0, 0);
-	imshow("depth", depth);
-	moveWindow("depth", 645, 0);
-	imshow("depth_dif", depth_dif);
-	moveWindow("depth_dif", 0, 550);
+	//~ imshow("chroma", chroma);
+	//~ moveWindow("chroma", 0, 0);
+	//~ imshow("chroma_dif", chroma_dif);
+	//~ moveWindow("chroma_dif", 645, 0);
+	//~ imshow("depth", depth);
+	//~ moveWindow("depth", 0, 550);
+	//~ imshow("depth_dif", depth_dif);
+	//~ moveWindow("depth_dif", 645, 550);
 	
 	//Fuse the gray and depth images
-	fusion = chroma/2 +  depth_dif/2;
-	normalize(fusion, fusion, 0, 255, NORM_MINMAX);
-	cv::threshold(fusion, fusion, 110, 255, THRESH_BINARY);
+	fusion = chroma_dif;
+	cv::threshold(fusion, fusion, 100, 255, THRESH_BINARY);
 	
 	//Detect moving blobs
-	detectBlobs(fusion, fusion_rects, 10);
+	detectBlobs(fusion, fusion_rects, 15);
 	
 	//Track blobs
 	track(fusion_rects, people);
@@ -88,12 +95,14 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 	int rank = -1;
 	int index = -1;
 	Fusion_processing::Position pos;
-	for(int i = 0; i < people.tracked_rankings.size(); i++)
+	int end = people.tracked_rankings.size();
+	for(int i = 0; i < end; i++)
 	{
 		people.tracked_pos.push_back(pos);
 		if(people.tracked_rankings[i] > 3)
 		{
 			//~ cout<<people.tracked_boxes[i].x<<" " <<people.tracked_boxes[i].y<<" "<<people.tracked_boxes[i].width<<" "<<people.tracked_boxes[i].height<<endl;
+			people.tracked_pos.push_back(pos);
 			rectangle(fusion, people.tracked_boxes[i], 255, 1);
 			rectangle(chroma, people.tracked_boxes[i], 0, 1);
 			if(rank < people.tracked_rankings[i])
@@ -103,7 +112,17 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 				index = i;
 			}
 		}
+		else
+		{
+			people.tracked_boxes[i] = people.tracked_boxes.back();
+			people.tracked_boxes.pop_back();
+			people.tracked_rankings[i] = people.tracked_rankings.back();
+			people.tracked_rankings.pop_back();
+			i--;
+			end--;
+		}
 	}
+	
 	
 	//For the box with the highest rank
 	if(rect.width > 0)
@@ -122,8 +141,8 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 		}
 		
 		//Filter the image according to the estimated depth and visualize it
-		
-		depth_dif = Scalar(0);
+		Mat depth_filtered(depth.rows, depth.cols, CV_8UC1);
+		depth_filtered = Scalar(0);
 		
 		for(int i = 0; i < depth_rect.rows; i++)
 		{
@@ -136,9 +155,13 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 		}
 		depthToGray(depth_rect, depth_rect, min_depth, max_depth);
 		
-		depth_rect.copyTo(depth_dif(rect));
-		imshow("depth_filtered", depth_dif);
-		moveWindow("depth_filtered", 645, 550);
+		depth_rect.copyTo(depth_filtered(rect));
+		imshow("fusion", fusion);
+		moveWindow("fusion", 0, 0);
+		imshow("depth_filt", depth_filtered);
+		moveWindow("depth_filt", 645, 550);
+		imshow("chroma", chroma);
+		moveWindow("chroma", 0, 550);
 		
 		try
 		{
@@ -617,7 +640,7 @@ void Fusion_processing::calculatePosition(Rect_<int>& rect, Fusion_processing::P
 			ver_y = (depth_height/2 - ver_y);
 			
 		bottom = depth * ver_y / hor_focal;
-		pos.height = abs(top - bottom);
+		pos.height = abs(top);// - bottom);
 	
 	}
 	
@@ -658,8 +681,8 @@ double Fusion_processing::calculateDepth(Mat& src, Rect_<int> personRect)
 			cols = size;
 		}
 		
-		cols = src.cols*0.8;
-		rows = src.rows*0.8;
+		cols = src.cols*0.7;
+		rows = src.rows*0.4;
 		
 		for(int i = 0; i < rows; i++)
 		{
@@ -745,14 +768,15 @@ double Fusion_processing::calculateDepth(Mat& src, Rect_<int> personRect)
 			
 			//~ printf("%s %2.3f\n","Depth:  " ,median);
 			
+			/*
 			Mat src_gray;
 			depthToGray(src, src_gray, 0, max_depth);
-			for(int i = 0; i < src_gray.rows; i++)
+			for(int i = 0; i < rows; i++)
 			{
 				uchar* cur = src_gray.ptr<uchar>(i);	
-				for(int j = 0; j < src_gray.cols; j++)
+				for(int j = 0; j < cols; j++)
 				{
-					if(rep.cidx[i*src_gray.cols + j] == index[0])
+					if(rep.cidx[i*cols + j] == index[0])
 					{
 						cur[j] = 0;
 					}
@@ -766,10 +790,10 @@ double Fusion_processing::calculateDepth(Mat& src, Rect_<int> personRect)
 			Mat temp_img(depth_height, depth_width, CV_8UC1);
 			temp_img = Scalar(0);
 
-			src.copyTo(temp_img(Rect(personRect.x, personRect.y, src.cols, src.rows)));
+			src.copyTo(temp_img(Rect(personRect.x, personRect.y, cols, rows)));
 			imshow("Clustered", temp_img);
 			moveWindow("Clustered", 645, 0);
-			
+			*/
 		
 		}
 		

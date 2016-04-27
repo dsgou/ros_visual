@@ -2,7 +2,6 @@
 	<arg name="depth_topic"  default="/camera/depth/image_raw"/>
 	<arg name="depth_out_image_topic" default="/camera/depth/image"/>
 	<arg name="depth_out_dif_topic" default="/camera/depth/image_dif"/>
-	<arg name="depth_out_dif_topic"/>
 	<arg name="project_path" default="$(find ros_visual)" />
 	<arg name="playback_topics"  default="false"/>
 	<arg name="display"  default="true"/>
@@ -16,7 +15,8 @@
 	<node pkg="depth" type="depth" name="depth" output="screen" >
 		<param name="project_path" value="$(arg project_path)"/>
 		<param name="depth_topic" value="$(arg depth_topic)" />
-		<param name="depth_out_topic" value="$(arg depth_out_topic)" />
+		<param name="depth_out_image_topic" value="$(arg depth_out_image_topic)" />
+		<param name="depth_out_dif_topic" value="$(arg depth_out_dif_topic)" />
 		<param name="depth_width"  value="$(arg depth_width)"/>
 		<param name="depth_height"  value="$(arg depth_height)"/>
 		<param name="min_depth"  value="$(arg min_depth)"/>

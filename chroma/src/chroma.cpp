@@ -1,14 +1,13 @@
 #include <chroma.hpp>
 
-
-	
 Chroma_processing::Chroma_processing()
 : it_(nh_)
 {
 	//Getting the parameters specified by the launch file 
 	ros::NodeHandle local_nh("~");
 	local_nh.param("image_topic", image_topic, string("/camera/rgb/image_raw"));
-	local_nh.param("image_out_topic", image_out_topic, string("/chroma_proc/image_raw"));
+	local_nh.param("image_out_topic", image_out_topic, string("/chroma_proc/image"));
+	local_nh.param("image_out_dif_topic", image_out_dif_topic, string("/chroma_proc/image_dif"));
 	local_nh.param("project_path",path_, string(""));
 	local_nh.param("playback_topics", playback_topics, false);
 	local_nh.param("display", display, false);
@@ -28,6 +27,7 @@ Chroma_processing::Chroma_processing()
 	} 
 	
 	image_pub = it_.advertise(image_out_topic, 1); 
+	image_pub_dif = it_.advertise(image_out_dif_topic, 1); 
 }
 
 Chroma_processing::~Chroma_processing()
@@ -36,8 +36,6 @@ Chroma_processing::~Chroma_processing()
 	destroyAllWindows();
 	
 }
-
-
 
 /* Callback function to handle ros image messages
  * 
@@ -50,7 +48,7 @@ Chroma_processing::~Chroma_processing()
 void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 {
 	
-	
+	cv_bridge::CvImagePtr cv_ptr;
 	int rows;
 	int cols;
 	int channels;
@@ -152,8 +150,12 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 	waitKey(1);
 	
 	cv_ptr->header.stamp = ros::Time::now();
-	cv_ptr->image = dif_rgb;
+	cv_ptr->image = cur_rgb;
 	image_pub.publish(cv_ptr->toImageMsg());
+	
+	cv_ptr->image = dif_rgb;
+	image_pub_dif.publish(cv_ptr->toImageMsg());
+	
 }
 
 /* Detects non-black areas in the image and populates a list of OpenCV Rects  

@@ -69,7 +69,7 @@ class Fusion_processing
 		~Fusion_processing();
 				
 		
-		void callback(const sensor_msgs::Image::ConstPtr& chroma_msg, const sensor_msgs::Image::ConstPtr& depth_msg, const sensor_msgs::Image::ConstPtr& depth_dif_msg);
+		void callback(const sensor_msgs::Image::ConstPtr& chroma_msg, const sensor_msgs::Image::ConstPtr& chroma_dif_msg, const sensor_msgs::Image::ConstPtr& depth_msg, const sensor_msgs::Image::ConstPtr& depth_dif_msg);
 		
 		//Detection and tracking of blobs
 		void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range);
@@ -99,12 +99,13 @@ class Fusion_processing
 		image_transport::ImageTransport it_;
 		typedef image_transport::SubscriberFilter ImageSubscriber;
 				
-		typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, sensor_msgs::Image> MySyncPolicy;
+		typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, sensor_msgs::Image, sensor_msgs::Image> MySyncPolicy;
 		message_filters::Synchronizer< MySyncPolicy > *sync;
   	
 		string path_;
 		string session_path;
 		string image_topic;
+		string image_dif_topic;
 		string depth_topic;
 		string depth_dif_topic;
 		

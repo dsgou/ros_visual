@@ -68,15 +68,16 @@ class Chroma_processing
 		
 	private:
 	
-		ros::NodeHandle nh_;
-		cv_bridge::CvImagePtr cv_ptr;
+		ros::NodeHandle nh_;		
 		image_transport::ImageTransport it_;
 		image_transport::Subscriber image_sub;
 		image_transport::Publisher image_pub;
+		image_transport::Publisher image_pub_dif;
 			
 		string path_;
 		string image_topic;
 		string image_out_topic;
+		string image_out_dif_topic;
 		
 		
 		Mat cur_rgb;
