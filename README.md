@@ -10,22 +10,28 @@ their movement and physique(e.g. height).
 It consists of 4 catkin packages, the depth, chroma and fusion packages comprise the process described above while ros_visual is a high level package to help
 launch all the nodes and automate the process. 
 
+### Description ###
+The concept of this project is to detect and track people in indoor environment and produce some statistics regarding
+their movement and physique(e.g. height). 
+It consists of 4 catkin packages, the depth, chroma and fusion packages comprise the process described above while ros_visual is a high level package to help
+launch all the nodes and automate the process. 
+
 * Chroma
-  ⋅⋅* Description: Processes the RGB image to be more useful and publishes the processed version and the image difference  
-  ⋅⋅* Input : RGB image
-  ⋅⋅* Output: ⋅⋅* processed RGB image
-			  ⋅⋅* RGB image difference
+ * Description: Processes the RGB image to be more useful and publishes the processed version and the image difference  
+ * Input : RGB image
+ * Output: * processed RGB image
+	   * RGB image difference
 * Depth
-  ⋅⋅* Description: Processes the depth image and corrects the holes and publishes the processed version and the depth difference
-  ⋅⋅* Input : depth image
-  ⋅⋅* Output: ⋅⋅* processed depth image
-			  ⋅⋅* depth image difference
+ * Description: Processes the depth image and corrects the holes and publishes the processed version and the depth difference
+ * Input : depth image
+ * Output: * processed depth image
+	   * depth image difference
 * Fusion
-  ⋅⋅* Description: Combines the output of the Chroma and Depth nodes and produces high level statistics
-  ⋅⋅* Input : ⋅⋅* RGB image
-			  ⋅⋅* RGB image difference
-			  ⋅⋅* depth image difference
-			  ⋅⋅* depth image difference
+ * Description: Combines the output of the Chroma and Depth nodes and produces high level statistics
+ * Input : * RGB image
+	   * RGB image difference
+	   * depth image difference
+	   * depth image difference
   
   
 ### Set up ###
