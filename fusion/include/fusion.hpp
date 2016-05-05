@@ -29,8 +29,7 @@
 #include <sensor_msgs/Image.h>
 
 #include <utility.hpp>
-#include <stdafx.h>
-#include <dataanalysis.h>
+#include <vision.hpp>
 
 using namespace std;
 using namespace cv;
@@ -46,52 +45,12 @@ char timeBuf[80];
 class Fusion_processing
 {
 	public:
-	
-		struct Position 
-		{
-			float x = 0.0;
-			float y = 0.0;
-			float z = 0.0;
-			float top = 0.0;
-			float height = 0.0;
-			float distance = 0.0;
-		};
-		
-		struct People 
-		{
-			vector< Rect_<int> > tracked_boxes;
-			vector< float > tracked_rankings;
-			vector< Position > tracked_pos;
-		};
-		
-		
-		
+			
 		Fusion_processing();		  
 		~Fusion_processing();
-				
 		
 		void callback(const sensor_msgs::Image::ConstPtr& chroma_msg, const sensor_msgs::Image::ConstPtr& chroma_dif_msg, const sensor_msgs::Image::ConstPtr& depth_msg, const sensor_msgs::Image::ConstPtr& depth_dif_msg);
-		
-		//Detection and tracking of blobs
-		void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range);
-		void track(vector< Rect_<int> >& current, People& collection, int rank = 3, float threshold = 0.2);
-		
-		//Depth estimation functions
-		double calculateDepth(Mat& src, Rect_<int> personRect);
-		double minDepth(vector<double> vec, int number);
-		double centerDepth(const Mat& src, int number);
-		double combineDepth(double saveMin, double saveCenter, double saveCluster, double min_depth = 0.0, double max_depth = 6.0);
-		
-		//Position estimation
-		void calculatePosition(Rect& rect, Position& pos);
-		
-		//helper functions
-		int threshold(Mat& src, Mat& dst, int thresh);
-		void fixRects(vector< Rect_<int> >& rects, int screenW);
-		void depthToGray(Mat& src, Mat& dst, float min_depth, float max_depth);
-		void grayToDepth(Mat& src, Mat& dst, float max_depth);
-		kmeansreport clusterize(const vector<float>& vec, int clusters);
-		void writeCSV(Fusion_processing::People& collection, string path);
+		void writeCSV(People& collection, string path);
 		
 		
 	private:

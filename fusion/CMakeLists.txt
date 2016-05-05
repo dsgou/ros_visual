@@ -22,19 +22,23 @@ aux_source_directory(src/ SRC_LIST)
 
 include_directories(
   include
+  /usr/include/
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
 )
 
-set(EXTERNAL_LIBS alglib)
+link_directories(
+  /usr/lib/
+  /usr/local/lib/ 
+  /usr/lib/x86_64-linux-gnu/ 
+)
 
 add_executable(fusion ${SRC_LIST})
 
-link_directories(/usr/include /usr/lib/x86_64-linux-gnu/)
 
 target_link_libraries(${PROJECT_NAME} 
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
-  ${EXTERNAL_LIBS}
+  libvision.so
 )
 

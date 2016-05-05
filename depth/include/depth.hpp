@@ -21,13 +21,11 @@
 #include <limits>
 #include <opencv2/video/background_segm.hpp>
 #include <exception>
+#include <vision.hpp>
 
-#include <stdafx.h>
-#include <dataanalysis.h>
 
 using namespace std;
 using namespace cv;
-using namespace alglib;
 
 #define DEPTH_MAX 6000.0  /**< Default maximum distance. Only use this for initialization. */
 #define DEPTH_MIN 0.0  /**< Default minimum distance. Only use this for initialization. */
@@ -35,62 +33,13 @@ using namespace alglib;
 class Depth_processing
 {
 	public:
-		
-		struct Position 
-		{
-			float x = 0.0;
-			float y = 0.0;
-			float z = 0.0;
-			float height = 0.0;
-			float distance = 0.0;
-		};
-		
-		struct People 
-		{
-			vector< Rect_<int> > tracked_boxes;
-			vector< float > tracked_rankings;
-			vector< Position > tracked_pos;
-		};
-		
-		
+				
 		Depth_processing();
 		~Depth_processing();
 		
 		//depth callback
 		void depthCb(const sensor_msgs::ImageConstPtr& msg);
-		
-		//Region growing algorithms
-		void upVerticalFill(Mat& src, float threshold, bool flag);
-		void upVerticalFill2(Mat& src, float threshold, bool scale);
-		void rightHorizontalFill(Mat& cur_Mat, float threshold, bool scale);
-		void rectFill(Mat& cur_Mat, float threshold, int range);
-		
-		//Background & foreground estimation, to be used in sequence
-		void estimateBackground(Mat& src, Mat& dst, vector<Mat>& storage, int recursion, float ratio = 0.04, int index = 0);
-		void estimateForeground(Mat& src1, Mat& src2, Mat& dst);
-		
-		//Detection and tracking of blobs
-		void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range);
-		void track(vector< Rect_<int> >& current, People& collection, int rank = 3, float threshold = 0.2);
-		
-		//Depth estimation functions
-		double calculateDepth(const Mat& src);
-		double minDepth(vector<double> vec, int number);
-		double centerDepth(const Mat& src, int number);
-		double combineDepth(double saveMin, double saveCenter, double saveCluster, double min_depth = 0.0, double max_depth = 6.0);
-		
-		//Position estimation
-		void calculatePosition(Rect& rect, Position& pos);
-		
-		//helper functions
-		int threshold(Mat& src, Mat& dst, int thresh);
-		void fixRects(vector< Rect_<int> >& rects, int screenW);
-		void depthToGray(Mat& src, Mat& dst, float min_depth, float max_depth);
-		void grayToDepth(Mat& src, Mat& dst, float max_depth);
-		void frameDif(Mat& src1, Mat& src2, Mat& dst, float threshold);
-		kmeansreport clusterize(const vector<float>& vec, int clusters);
-		
-		
+				
 	private:
 	
 		ros::NodeHandle nh_;

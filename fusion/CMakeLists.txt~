@@ -28,7 +28,7 @@ include_directories(
 
 set(EXTERNAL_LIBS alglib)
 
-add_executable(depth ${SRC_LIST})
+add_executable(fusion ${SRC_LIST})
 
 link_directories(/usr/include /usr/lib/x86_64-linux-gnu/)
 
