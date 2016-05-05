@@ -52,6 +52,7 @@ class Fusion_processing
 			float x = 0.0;
 			float y = 0.0;
 			float z = 0.0;
+			float top = 0.0;
 			float height = 0.0;
 			float distance = 0.0;
 		};

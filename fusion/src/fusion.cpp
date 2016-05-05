@@ -39,7 +39,6 @@ Fusion_processing::Fusion_processing()
 	}
 }
 
-
 Fusion_processing::~Fusion_processing()
 {
 	//destroy GUI windows
@@ -219,12 +218,12 @@ void Fusion_processing::writeCSV(Fusion_processing::People& collection, string p
 				<<pos.x<<"\t"
 				<<pos.y<<"\t"
 				<<pos.z<<"\t"
+				<<pos.top<<"\t"
 				<<pos.height<<"\t"
 				<<pos.distance<<
 				endl;
 				
 		}
-		
 		storage.close();
 	}
 }
@@ -640,7 +639,8 @@ void Fusion_processing::calculatePosition(Rect_<int>& rect, Fusion_processing::P
 			ver_y = (depth_height/2 - ver_y);
 			
 		bottom = depth * ver_y / hor_focal;
-		pos.height = abs(top);// - bottom);
+		pos.top = abs(top);
+		pos.height = abs(top - bottom);
 	
 	}
 	

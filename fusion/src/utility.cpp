@@ -40,7 +40,7 @@ string Utility::initialize(string path_, bool create_csv, bool save_images)
 		pchar = (session_path + "/csv/session.csv").c_str();  
 		ofstream storage;
 		storage.open (pchar,ios::out | ios::app );
-		storage<<"Timestamp\tRect_id\tRect_x\tRect_y\tRect_W\tRect_H\tMeter_X\tMeter_Y\tMeter_Z\tHeight\tDistance"<<endl;
+		storage<<"Timestamp\tRect_id\tRect_x\tRect_y\tRect_W\tRect_H\tMeter_X\tMeter_Y\tMeter_Z\tTop\tHeight\tDistance"<<endl;
 		storage.close();
 	}
 	return (session_path).c_str();
