@@ -38,24 +38,38 @@ their movement and physique(e.g. height).
 * Install ROS on your system by following the installation instructions (www.ros.org), install according to your OS: ```sudo apt-get install ros-indigo-desktop-full ```
 * Install opencv either as a ROS package or standlone depending on your version ```sudo apt-get install ros-indigo-vision-opencv```
 * Install ros-distribution-openni-launch, those are the kinect drivers ```sudo apt-get install ros-indigo-openni-launch```
-* Install catkin and create workspace:
- *  ```sudo apt-get install ros-indigo-catkin```
- * source /opt/ros/indigo/setup.bash
- * create catkin workspace:
-  * ```mkdir -p ~/catkin_ws/src```
-  * ```cd ~/catkin_ws/src```
-  * ```catkin_init_workspace```
-  * ```cd ~/catkin_ws/``` and ```catkin_make```
-  * ```source devel/setup.bash```
+* Install catkin:
+
+  ```
+    sudo apt-get install ros-indigo-catkin
+    source /opt/ros/indigo/setup.bash
+  ```
+* Create catkin workspace:
+
+  ```
+    mkdir -p ~/catkin_ws/src
+    cd ~/catkin_ws/src
+    catkin_init_workspace
+    cd ~/catkin_ws/
+    catkin_make
+    source devel/setup.bash
+  ```
   * check that the path is included by: ```echo $ROS_PACKAGE_PATH```
 * Copy this project in ```~/catkin_ws/src```
 * Install Alglib (clustering for depth estimation), in case the stdafx.h file needed is not in /usr/include/
 check where your system has  stored it and add the directory in the CMAkeList.txt link_directories()
 * Install the vision library
- * ```cd ~/catkin_ws/src/vision```
- * ```cmake .```
- * ```sudo make install```
-* Run in terminal: catkin_make
+
+  ```
+    cd ~/catkin_ws/src/vision
+    cmake .
+    sudo make install
+  ```
+* Run in terminal: 
+
+  ```
+  catkin_make
+  ```
 
 ### Development & Testing ###
 * Make project : catkin_make
@@ -71,7 +85,6 @@ check where your system has  stored it and add the directory in the CMAkeList.tx
 * To run with kinect:
       
 ```
-#!
  roslaunch openni_launch openni.launch	(kinect drivers)
  roslaunch ros_visual config.xml		(run project)
 ```
@@ -86,7 +99,6 @@ check where your system has  stored it and add the directory in the CMAkeList.tx
 - Edit config.launch: playback_topics = True
 - Run in terminal:
 ```
-#!
 roslaunch ros_visual config.xml	
 rosbag play bagfile.bag
 ```
