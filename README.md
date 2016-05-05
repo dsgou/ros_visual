@@ -28,6 +28,8 @@ their movement and physique(e.g. height).
 	   * depth image difference
 * **ros_visual**
  * Description: High level package to help launch all the nodes and automate the process, only contains launch files
+* **vision**
+ * Description: Computer vision library
   
 ### Set up ###
 
@@ -49,6 +51,10 @@ their movement and physique(e.g. height).
 * Copy this project in ```~/catkin_ws/src```
 * Install Alglib (clustering for depth estimation), in case the stdafx.h file needed is not in /usr/include/
 check where your system has  stored it and add the directory in the CMAkeList.txt link_directories()
+* Install the vision library
+ * ```cd ~/catkin_ws/src/vision```
+ * ```cmake .``
+ * ```sudo make install``
 * Run in terminal: catkin_make
 
 ### Development & Testing ###
@@ -81,8 +87,8 @@ check where your system has  stored it and add the directory in the CMAkeList.tx
 - Run in terminal:
 ```
 #!
-rosbag play bagfile.bag
 roslaunch ros_visual config.xml	
+rosbag play bagfile.bag
 ```
 
 ### Who do I talk to? ###
