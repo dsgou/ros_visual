@@ -53,8 +53,8 @@ their movement and physique(e.g. height).
 check where your system has  stored it and add the directory in the CMAkeList.txt link_directories()
 * Install the vision library
  * ```cd ~/catkin_ws/src/vision```
- * ```cmake .``
- * ```sudo make install``
+ * ```cmake .```
+ * ```sudo make install```
 * Run in terminal: catkin_make
 
 ### Development & Testing ###
