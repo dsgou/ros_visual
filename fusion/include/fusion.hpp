@@ -38,10 +38,6 @@ using namespace alglib;
 #define DEPTH_MAX 6000.0  /**< Default maximum distance. Only use this for initialization. */
 #define DEPTH_MIN 0.0  /**< Default minimum distance. Only use this for initialization. */
 
-struct timeval tv;
-time_t curtime;
-char timeBuf[80];
-
 class Fusion_processing
 {
 	public:
@@ -50,7 +46,7 @@ class Fusion_processing
 		~Fusion_processing();
 		
 		void callback(const sensor_msgs::Image::ConstPtr& chroma_msg, const sensor_msgs::Image::ConstPtr& chroma_dif_msg, const sensor_msgs::Image::ConstPtr& depth_msg, const sensor_msgs::Image::ConstPtr& depth_dif_msg);
-		void writeCSV(People& collection, string path);
+		void writeCSV(People& collection, string path, ros::Time time);
 		
 		
 	private:

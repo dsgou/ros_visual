@@ -149,7 +149,6 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 	has_image = true;
 	waitKey(1);
 	
-	cv_ptr->header.stamp = ros::Time::now();
 	cv_ptr->image = cur_rgb;
 	image_pub.publish(cv_ptr->toImageMsg());
 	

@@ -159,7 +159,6 @@ void Depth_processing::depthCb(const sensor_msgs::ImageConstPtr& msg)
 	waitKey(1);
 	
 	grayToDepth(cur_depth, cur_depth, max_depth);
-	cv_ptr_depth->header.stamp = ros::Time::now();
 	cv_ptr_depth->image = cur_depth;
 	depth_pub.publish(cv_ptr_depth->toImageMsg());
 	

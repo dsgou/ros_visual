@@ -182,7 +182,8 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 		
 		if(write_csv)
 		{
-			writeCSV(people, session_path);
+			ros::Time time = cv_ptr->header.stamp;
+			writeCSV(people, session_path, time);
 		}		
 		
 	}
@@ -191,7 +192,7 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 	
 }
 
-void Fusion_processing::writeCSV(People& collection, string path)
+void Fusion_processing::writeCSV(People& collection, string path, ros::Time time)
 {		
 	if (!collection.tracked_boxes.empty())
 	{
@@ -200,16 +201,13 @@ void Fusion_processing::writeCSV(People& collection, string path)
 		char const *pchar = (path + "/csv/session.csv").c_str();  
 		storage.open (pchar,ios::out | ios::app );
 		
-		gettimeofday(&tv, NULL); 
-		curtime=tv.tv_sec;
-		strftime(timeBuf,sizeof(timeBuf),"%T:",localtime(&curtime));
 		
 		for(int i = 0; i < collection.tracked_boxes.size() ; i++) 
 		{
 			Rect box = collection.tracked_boxes[i];
 			Position pos = collection.tracked_pos[i];
 			storage
-				<<timeBuf<<int(tv.tv_usec/10000)<<"\t"
+				<<time<<"\t"
 				<<i<<"\t"
 				<<box.x<<"\t"
 				<<box.y<<"\t"
