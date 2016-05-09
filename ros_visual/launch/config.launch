@@ -7,7 +7,7 @@
 	<arg name="depth_out_dif_topic"  default="/depth_proc/image_dif"/>
 	<arg name="project_path" default="$(find ros_visual)" />
 	<arg name="playback_topics"  default="false"/>
-	<arg name="write_csv"  default="true"/>
+	<arg name="write_csv"  default="false"/>
 	<arg name="display"  default="false"/>
 	<arg name="min_depth"  default="0"/>
 	<arg name="max_depth"  default="6000"/>
