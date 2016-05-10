@@ -160,7 +160,9 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 		depthToGray(depth_rect, depth_rect, min_depth, max_depth);
 		
 		depth_rect.copyTo(depth_filtered(rect));
-		if(display){
+		
+		if(display)
+		{
 			imshow("fusion", fusion);
 			moveWindow("fusion", 0, 0);
 			imshow("depth_filt", depth_filtered);
@@ -190,16 +192,13 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 		
 		if(write_csv)
 		{
-<<<<<<< HEAD
+
 			ros::Time time = cv_ptr->header.stamp;
 			writeCSV(people, session_path, time);
 		}		
-=======
-			writeCSV(people, session_path);
-		}	
 
 		publishResults(people);
->>>>>>> e861315a9b8dc81bccc79a81de0b6d3fdcf9b9db
+
 		
 	}
 	

@@ -12,6 +12,7 @@ catkin_package(INCLUDE_DIRS include
 include_directories(
   include
   /usr/include/
+  /usr/include/libalglib/
   ${OpenCV_INCLUDE_DIRS}
 )
 

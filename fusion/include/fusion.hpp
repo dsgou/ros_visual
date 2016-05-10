@@ -49,12 +49,11 @@ class Fusion_processing
 		~Fusion_processing();
 		
 		void callback(const sensor_msgs::Image::ConstPtr& chroma_msg, const sensor_msgs::Image::ConstPtr& chroma_dif_msg, const sensor_msgs::Image::ConstPtr& depth_msg, const sensor_msgs::Image::ConstPtr& depth_dif_msg);
-<<<<<<< HEAD
+
 		void writeCSV(People& collection, string path, ros::Time time);
-=======
-		void writeCSV(People& collection, string path);
+
 		void publishResults(People& collection);
->>>>>>> e861315a9b8dc81bccc79a81de0b6d3fdcf9b9db
+
 		
 		
 	private:
