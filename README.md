@@ -24,7 +24,7 @@ their movement and physique(e.g. height).
  * Input : 
   	   * RGB image
 	   * RGB image difference
-	   * depth image difference
+	   * depth image
 	   * depth image difference
 * **ros_visual**
  * Description: High level package to help launch all the nodes and automate the process, only contains launch files
@@ -70,13 +70,7 @@ their movement and physique(e.g. height).
 * Copy this project in ```~/catkin_ws/src```
 * Install Alglib (clustering for depth estimation), in case the stdafx.h file needed is not in /usr/include/
 check where your system has  stored it and add the directory in the CMAkeList.txt link_directories()
-* Install the vision library
 
-  ```
-    cd ~/catkin_ws/src/vision
-    cmake .
-    sudo make install
-  ```
 * Run in terminal: 
 
   ```

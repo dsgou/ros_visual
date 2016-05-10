@@ -1,0 +1,11 @@
+depth_topic: "/camera/depth/image_raw"
+depth_out_image_topic: "/depth_proc/image"
+depth_out_dif_topic: "/depth_proc/image_dif"
+playback_topics: false
+display: false
+min_depth: 0
+max_depth: 6000
+hor_field: 58
+ver_field: 45
+depth_width: 640
+depth_height: 480

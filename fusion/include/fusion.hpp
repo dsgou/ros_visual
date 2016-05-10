@@ -31,6 +31,9 @@
 #include <utility.hpp>
 #include <vision.hpp>
 
+#include <fusion/FusionMsg.h>
+#include <fusion/Box.h>
+
 using namespace std;
 using namespace cv;
 using namespace alglib;
@@ -46,12 +49,18 @@ class Fusion_processing
 		~Fusion_processing();
 		
 		void callback(const sensor_msgs::Image::ConstPtr& chroma_msg, const sensor_msgs::Image::ConstPtr& chroma_dif_msg, const sensor_msgs::Image::ConstPtr& depth_msg, const sensor_msgs::Image::ConstPtr& depth_dif_msg);
+<<<<<<< HEAD
 		void writeCSV(People& collection, string path, ros::Time time);
+=======
+		void writeCSV(People& collection, string path);
+		void publishResults(People& collection);
+>>>>>>> e861315a9b8dc81bccc79a81de0b6d3fdcf9b9db
 		
 		
 	private:
 	
 		ros::NodeHandle nh_;
+		ros::Publisher results_publisher;
 		image_transport::ImageTransport it_;
 		typedef image_transport::SubscriberFilter ImageSubscriber;
 				
@@ -64,6 +73,8 @@ class Fusion_processing
 		string image_dif_topic;
 		string depth_topic;
 		string depth_dif_topic;
+		string results_topic;
+		string camera_frame;
 		
 		vector< Rect_<int> > depth_rects;
 		
