@@ -6,6 +6,7 @@ Fusion_processing::Fusion_processing()
 {
 	 //Getting the parameters specified by the launch file 
 	ros::NodeHandle local_nh("~");
+	local_nh.param("results_topic", results_topic, string("results"));
 	local_nh.param("image_topic", image_topic, string("/chroma_proc/image"));
 	local_nh.param("image_dif_topic", image_dif_topic, string("/chroma_proc/image_dif"));
 	local_nh.param("depth_topic", depth_topic, string("/depth_proc/image"));
@@ -16,6 +17,8 @@ Fusion_processing::Fusion_processing()
 	local_nh.param("display", display, false);
 	local_nh.param("max_depth", max_depth, DEPTH_MAX);
 	local_nh.param("min_depth", min_depth, DEPTH_MIN);
+	local_nh.param("camera_frame", camera_frame, string("camera_link"));
+
 	if(playback_topics)
 	{
 		ROS_INFO_STREAM_NAMED("Fusion_processing","Subscribing at compressed topics \n"); 
@@ -32,6 +35,8 @@ Fusion_processing::Fusion_processing()
 	sync = new message_filters::Synchronizer< MySyncPolicy >( MySyncPolicy( 5 ), *image_sub, *image_dif_sub, *depth_sub, *depth_dif_sub );
     sync->registerCallback( boost::bind( &Fusion_processing::callback, this, _1, _2, _3, _4 ) );
     
+    results_publisher = local_nh.advertise<fusion::FusionMsg>(results_topic, 1000);
+
     if(write_csv)
     {
 	    Utility u;
@@ -155,12 +160,15 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 		depthToGray(depth_rect, depth_rect, min_depth, max_depth);
 		
 		depth_rect.copyTo(depth_filtered(rect));
-		imshow("fusion", fusion);
-		moveWindow("fusion", 0, 0);
-		imshow("depth_filt", depth_filtered);
-		moveWindow("depth_filt", 645, 550);
-		imshow("chroma", chroma);
-		moveWindow("chroma", 0, 550);
+		if(display){
+			imshow("fusion", fusion);
+			moveWindow("fusion", 0, 0);
+			imshow("depth_filt", depth_filtered);
+			moveWindow("depth_filt", 645, 550);
+			imshow("chroma", chroma);
+			moveWindow("chroma", 0, 550);
+			waitKey(1);
+		}
 		
 		try
 		{
@@ -183,11 +191,11 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 		if(write_csv)
 		{
 			writeCSV(people, session_path);
-		}		
+		}	
+
+		publishResults(people);
 		
 	}
-	
-	waitKey(1);
 	
 }
 
@@ -225,6 +233,38 @@ void Fusion_processing::writeCSV(People& collection, string path)
 				
 		}
 		storage.close();
+	}
+}
+
+void Fusion_processing::publishResults(People& collection){
+	if (!collection.tracked_boxes.empty())
+	{
+		fusion::FusionMsg fmsg;
+
+		fmsg.header.stamp = ros::Time::now();
+		fmsg.header.frame_id = camera_frame;
+		
+		for(int i = 0; i < collection.tracked_boxes.size() ; i++) 
+		{
+			Rect box = collection.tracked_boxes[i];
+			Position pos = collection.tracked_pos[i];
+			
+			fusion::Box box_;
+			
+			box_.id = i;
+			box_.rect.x = box.x;
+			box_.rect.y = box.y;
+			box_.rect.width = box.width;
+			box_.rect.height = box.height;
+			box_.pos.x = pos.x;
+			box_.pos.y = pos.y;
+			box_.pos.z = pos.z;
+			box_.pos.top = pos.top;
+			box_.pos.height = pos.height;
+			box_.pos.distance = pos.distance;
+			fmsg.boxes.push_back(box_);
+		}
+		results_publisher.publish(fmsg);
 	}
 }
 
