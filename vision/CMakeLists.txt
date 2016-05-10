@@ -6,6 +6,9 @@ set(CMAKE_BUILD_TYPE Release)
 
 find_package(OpenCV REQUIRED)
 
+catkin_package(INCLUDE_DIRS include
+               LIBRARIES vision)
+
 include_directories(
   include
   /usr/include/
@@ -29,12 +32,6 @@ target_link_libraries(${PROJECT_NAME}
   alglib
 )
 
-install(TARGETS vision DESTINATION /usr/local/lib)
-install(FILES ${HEADERS} DESTINATION include)
-
-
-
-
-
-
+install(DIRECTORY include/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 

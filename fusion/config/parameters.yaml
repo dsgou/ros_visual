@@ -1,0 +1,11 @@
+results_topic: "results"
+image_topic: "/chroma_proc/image"
+image_dif_topic: "/chroma_proc/image_dif"
+depth_topic: "/depth_proc/image"
+depth_dif_topic: "/depth_proc/image_dif"
+playback_topics: false
+write_csv: false
+display: false
+min_depth: 0
+max_depth: 6000
+camera_frame: "camera_link"
