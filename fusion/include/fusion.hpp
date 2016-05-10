@@ -33,7 +33,6 @@
 
 #include <fusion/FusionMsg.h>
 #include <fusion/Box.h>
-//#include <std_msgs/Header.h>
 
 using namespace std;
 using namespace cv;
