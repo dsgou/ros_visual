@@ -47,12 +47,10 @@ class Depth_processing
 		image_transport::ImageTransport it_;
 		image_transport::Subscriber depth_sub;
 		image_transport::Publisher  depth_pub;
-		image_transport::Publisher  depth_pub_dif;
 			
 		string path_;
 		string depth_topic;
 		string depth_out_image_topic;
-		string depth_out_dif_topic;
 		
 		People people;
 		

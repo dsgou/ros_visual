@@ -48,7 +48,7 @@ class Fusion_processing
 		Fusion_processing();		  
 		~Fusion_processing();
 		
-		void callback(const sensor_msgs::Image::ConstPtr& chroma_msg, const sensor_msgs::Image::ConstPtr& chroma_dif_msg, const sensor_msgs::Image::ConstPtr& depth_msg, const sensor_msgs::Image::ConstPtr& depth_dif_msg);
+		void callback(const sensor_msgs::Image::ConstPtr& chroma_msg, const sensor_msgs::Image::ConstPtr& chroma_dif_msg, const sensor_msgs::Image::ConstPtr& depth_msg);
 
 		void writeCSV(People& collection, string path, ros::Time time);
 
@@ -63,7 +63,7 @@ class Fusion_processing
 		image_transport::ImageTransport it_;
 		typedef image_transport::SubscriberFilter ImageSubscriber;
 				
-		typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, sensor_msgs::Image, sensor_msgs::Image> MySyncPolicy;
+		typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, sensor_msgs::Image> MySyncPolicy;
 		message_filters::Synchronizer< MySyncPolicy > *sync;
   	
 		string path_;
@@ -71,7 +71,6 @@ class Fusion_processing
 		string image_topic;
 		string image_dif_topic;
 		string depth_topic;
-		string depth_dif_topic;
 		string results_topic;
 		string camera_frame;
 		
