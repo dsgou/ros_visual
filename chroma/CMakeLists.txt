@@ -9,10 +9,10 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   std_msgs
+  vision
 )
 
 find_package(OpenCV REQUIRED)
-find_package(vision REQUIRED)
 
 catkin_package()
 
