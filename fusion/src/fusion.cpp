@@ -25,7 +25,6 @@ Fusion_processing::Fusion_processing()
 		depth_topic += "/compressedDepth";
     } 
 	
-	
     
     ImageSubscriber *image_sub  = new ImageSubscriber(it_, image_topic, 3 );
     ImageSubscriber *image_dif_sub  = new ImageSubscriber(it_, image_dif_topic, 3 );
@@ -196,7 +195,7 @@ void Fusion_processing::writeCSV(People& collection, string path, ros::Time time
 	{
 		ofstream storage;
 		
-		char const *pchar = (path + "/csv/session.csv").c_str();  
+		char const *pchar = (path + "/session.csv").c_str();  
 		storage.open (pchar,ios::out | ios::app );
 		
 		

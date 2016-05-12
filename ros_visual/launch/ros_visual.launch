@@ -3,7 +3,7 @@
 
 	<arg name="project_path" default="$(find ros_visual)" />
 
-	<node pkg="chroma" type="chroma" name="chroma" output="screen" respawn="true">
+	<node pkg="chroma" type="chroma" name="chroma" output="screen">
 		<rosparam file="$(find chroma)/config/parameters.yaml" command="load" />
 		<param name="project_path" value="$(find ros_visual)" />
 	</node>

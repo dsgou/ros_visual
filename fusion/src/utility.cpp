@@ -34,10 +34,8 @@ string Utility::initialize(string path_, bool create_csv, bool save_images)
 	}
 	if(create_csv)
 	{
-		pchar = (session_path + "/csv/").c_str();
-		result += mkdir(pchar,  S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		
-		pchar = (session_path + "/csv/session.csv").c_str();  
+		pchar = (session_path + "/session.csv").c_str();  
 		ofstream storage;
 		storage.open (pchar,ios::out | ios::app );
 		storage<<"Timestamp\tRect_id\tRect_x\tRect_y\tRect_W\tRect_H\tMeter_X\tMeter_Y\tMeter_Z\tTop\tHeight\tDistance"<<endl;
