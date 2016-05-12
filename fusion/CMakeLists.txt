@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   message_generation
+  vision
 )
 
 add_message_files(
@@ -24,7 +25,6 @@ add_message_files(
 )
 
 find_package(OpenCV REQUIRED)
-find_package(vision REQUIRED)
 
 generate_messages(
 	DEPENDENCIES
