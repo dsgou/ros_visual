@@ -3,17 +3,18 @@
 
 #include <vector>
 #include <fstream>
-#include <cv.h>
-#include <highgui.h>
 #include <string>
 #include <math.h>
 #include <cmath>
+#include <ctime> 
 #include <sys/stat.h>
-#include <ctime>
 #include <sys/time.h>
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
+#include <opencv2/highgui/highgui.hpp>
+#include <boost/filesystem.hpp>
 
 using namespace std;
 using namespace cv;

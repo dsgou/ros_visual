@@ -193,10 +193,7 @@ void Fusion_processing::writeCSV(People& collection, string path, ros::Time time
 {		
 	if (!collection.tracked_boxes.empty())
 	{
-		ofstream storage;
-		
-		char const *pchar = (path + "/session.csv").c_str();  
-		storage.open (pchar,ios::out | ios::app );
+		ofstream storage(path + "/session.csv" ,ios::out | ios::app );
 		
 		
 		for(int i = 0; i < collection.tracked_boxes.size() ; i++) 

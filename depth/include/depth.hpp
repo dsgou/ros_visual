@@ -4,22 +4,13 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #include <vector>
-#include <cv.h>
-#include <highgui.h>
 #include <math.h>
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc_c.h>
-#include <opencv2/legacy/legacy.hpp>
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <opencv2/core/core.hpp>
 #include <limits>
-#include <opencv2/video/background_segm.hpp>
 #include <exception>
 #include <vision.hpp>
 
