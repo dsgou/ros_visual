@@ -7,29 +7,35 @@ their movement and physique(e.g. height).
  * Description: 
    Processes the RGB image to be more useful and publishes the processed version and the image difference  
  * Input : 
- 	   * RGB image
+     * RGB image
  * Output: 
- 	   * processed RGB image
-	   * RGB image difference
+     * processed RGB image
+     * RGB image difference
 * **Depth**
  * Description: 
    Processes the depth image and corrects the holes and publishes the processed version and the depth difference
  * Input : 
-  	   * depth image
+       * depth image
  * Output: 
- 	   * processed depth image
-  	   * depth image difference
+     * processed depth image
+     * depth image difference
 * **Fusion**
  * Description: Combines the output of the Chroma and Depth nodes and produces high level statistics
  * Input : 
-  	   * RGB image
-	   * RGB image difference
-	   * depth image
-	   * depth image difference
+      * RGB image
+      * RGB image difference
+      * depth image
+      * depth image difference
 * **ros_visual**
- * Description: High level package to help launch all the nodes and automate the process, only contains launch files
+    * Description: High level package to help launch all the nodes and automate the process, only contains launch files
 * **vision**
- * Description: Computer vision library
+    * Description: Computer vision library
+
+### Vagrant Base Box ###
+If you want to test the code without setting up your own catkin workspace, you can use the provided vagrant base box. A .bag file is also included in the home folder of the ros user.
+```
+ vagrant init gstavrinos/ROS_Indigo64; vagrant up --provider virtualbox
+ ```
   
 ### Set up ###
 
@@ -40,7 +46,7 @@ their movement and physique(e.g. height).
   ```
     sudo apt-get install ros-indigo-desktop-full 
   ```
-* Install opencv either as a ROS package or standlone depending on your version 
+* Install opencv either as a ROS package or standalone depending on your version 
 
   ```
     sudo apt-get install ros-indigo-vision-opencv
@@ -70,6 +76,9 @@ their movement and physique(e.g. height).
 * Copy this project in ```~/catkin_ws/src```
 * Install Alglib (clustering for depth estimation), in case the stdafx.h file needed is not in /usr/include/
 check where your system has  stored it and add the directory in the CMAkeList.txt link_directories()
+  ```
+    sudo apt-get install libalglib-dev
+  ```
 
 * Run in terminal: 
 
@@ -91,8 +100,8 @@ check where your system has  stored it and add the directory in the CMAkeList.tx
 * To run with kinect:
       
 ```
- roslaunch openni_launch openni.launch	(kinect drivers)
- roslaunch ros_visual config.xml		(run project)
+ roslaunch openni_launch openni.launch  (kinect drivers)
+ roslaunch ros_visual config.xml    (run project)
 ```
 
 * ... or in case openni_launch fails, could also try freenect instead:
@@ -105,7 +114,7 @@ check where your system has  stored it and add the directory in the CMAkeList.tx
 - Edit config.launch: playback_topics = True
 - Run in terminal:
 ```
-roslaunch ros_visual config.xml	
+roslaunch ros_visual ros_visual.xml 
 rosbag play bagfile.bag
 ```
 
