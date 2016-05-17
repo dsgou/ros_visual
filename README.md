@@ -32,7 +32,7 @@ their movement and physique(e.g. height).
     * Description: Computer vision library
 
 ### Vagrant Base Box ###
-If you want to test the code without setting up your own catkin workspace, you can use the provided vagrant base box. A .bag file is also included in the home folder of the ros user.
+If you want to test the code without setting up your own catkin workspace, you can use the provided vagrant base box. A .bag file is also included in the home folder of the ros user. In order to use this base box, you'll need to have the latest version of virtualbox installed. If you don't, please visit https://www.virtualbox.org/wiki/Downloads. After downloading virtualbox, and installing vagrant, you can run:
 ```
  vagrant init gstavrinos/ROS_Indigo64; vagrant up --provider virtualbox
  ```
