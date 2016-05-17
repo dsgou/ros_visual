@@ -70,13 +70,7 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 	cur_rgb.convertTo(cur_rgb, -1, 4, 0);
 	
 	// gamma correction
-	double inverse_gamma = 1.0 / 2.2;
-	
-	Mat lut_matrix(1, 256, CV_8UC1 );
-	uchar * ptr = lut_matrix.ptr();
-	for( int i = 0; i < 256; i++ )
-		ptr[i] = (int)( pow( (double) i / 255.0, inverse_gamma ) * 255.0 );
-	LUT( cur_rgb, lut_matrix, cur_rgb );
+	gammaCorrection(cur_rgb);
 	
 
 	// First run variable initialization 
