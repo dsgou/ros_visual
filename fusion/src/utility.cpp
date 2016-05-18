@@ -11,39 +11,31 @@ Utility::~Utility()
 string Utility::initialize(string path_, bool create_csv, bool save_images)
 {
 	
-	char const *pchar = (path_ + "/sessions/").c_str();
-	string session_path = pchar;
+	string session_path = path_ + "/sessions/";
 	
 	//~ Getting current time
 	string time = getTime("%d-%m-%Y_%X");
 	
 	//~ Creating session directory
-	mkdir(pchar,  S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	boost::filesystem::detail::create_directory(session_path);
 	
 	session_path = (session_path + time);
-	int result = mkdir(session_path.c_str(),  S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	boost::filesystem::detail::create_directory(session_path);
+	
 	
 	if(save_images)
 	{
-		pchar = (session_path + "/images/").c_str();
-		result += mkdir(pchar,  S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-		
-		pchar = (session_path + "/depth/").c_str();
-		result += mkdir(pchar,  S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		boost::filesystem::detail::create_directory(session_path + "/images/");
+		boost::filesystem::detail::create_directory(session_path + "/depth/");
 	
 	}
 	if(create_csv)
 	{
-		pchar = (session_path + "/csv/").c_str();
-		result += mkdir(pchar,  S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-		
-		pchar = (session_path + "/csv/session.csv").c_str();  
-		ofstream storage;
-		storage.open (pchar,ios::out | ios::app );
+		ofstream storage(session_path + "/session.csv", ios::out | ios::app );
 		storage<<"Timestamp\tRect_id\tRect_x\tRect_y\tRect_W\tRect_H\tMeter_X\tMeter_Y\tMeter_Z\tTop\tHeight\tDistance"<<endl;
 		storage.close();
 	}
-	return (session_path).c_str();
+	return session_path;
     
 }
 

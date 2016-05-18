@@ -8,7 +8,6 @@ Depth_processing::Depth_processing()
 	ros::NodeHandle local_nh("~");
 	local_nh.param("depth_topic", depth_topic, string("/camera/depth/image_raw"));
 	local_nh.param("depth_out_image_topic", depth_out_image_topic, string("/depth_proc/image"));
-	local_nh.param("depth_out_dif_topic", depth_out_dif_topic, string("/depth_proc/image_dif"));
 	local_nh.param("project_path",path_, string(""));
 	local_nh.param("playback_topics", playback_topics,false);
 	local_nh.param("display", display, false);
@@ -28,7 +27,6 @@ Depth_processing::Depth_processing()
 	}   
 	
 	depth_pub = it_.advertise(depth_out_image_topic, 1);
-	depth_pub_dif = it_.advertise(depth_out_dif_topic, 1);
 }
 
 Depth_processing::~Depth_processing()
@@ -82,7 +80,9 @@ void Depth_processing::depthCb(const sensor_msgs::ImageConstPtr& msg)
 	upVerticalFill(cur_depth, 0.3, true);
 	
 
-	//frame difference
+	/* Frame difference
+	 * 
+	 * 
 	temp_depth = cur_depth.clone();
 
 	medianBlur(temp_depth, temp_depth, 15);
@@ -92,10 +92,18 @@ void Depth_processing::depthCb(const sensor_msgs::ImageConstPtr& msg)
 	morphologyEx(dif_depth, dif_depth, 2, element);
 	
 	ref_depth = temp_depth.clone();
+	*/
+	
 	
 	//Display
 	if(display)
 	{
+		
+		imshow("cur_depth", cur_depth);
+		moveWindow("cur_depth", 0, 0);
+		
+		/*
+		 * 
 		//blob detection
 	    detectBlobs(dif_depth, depth_rects, 15);
 	    
@@ -105,10 +113,10 @@ void Depth_processing::depthCb(const sensor_msgs::ImageConstPtr& msg)
 			rectangle(temp, rect, 255, 1);
 		depth_rects.clear();
 		
-		imshow("cur_depth", cur_depth);
-		moveWindow("cur_depth", 0, 0);
+		
 		imshow("dif_depth", temp);
 		moveWindow("dif_depth", 0, 550);
+		*/
 	}
     
     /* Depth backgound estimation 
@@ -159,13 +167,9 @@ void Depth_processing::depthCb(const sensor_msgs::ImageConstPtr& msg)
 	waitKey(1);
 	
 	grayToDepth(cur_depth, cur_depth, max_depth);
-	cv_ptr_depth->header.stamp = ros::Time::now();
 	cv_ptr_depth->image = cur_depth;
 	depth_pub.publish(cv_ptr_depth->toImageMsg());
 	
-	
-	sensor_msgs::ImagePtr messsage = cv_bridge::CvImage(cv_ptr_depth->header, "mono8", dif_depth).toImageMsg();
-	depth_pub_dif.publish(messsage);
 
 }
 

@@ -94,7 +94,7 @@ check where your system has  stored it and add the directory in the CMAkeList.tx
 
 
 ### Run ###
-* The launch/config.launch file contains the run configurations of the project
+* The launch/config.xml file contains the run configurations of the project
 * Edit according to your needs
 * Make project : catkin_make
 * To run with kinect:

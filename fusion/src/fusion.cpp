@@ -10,7 +10,6 @@ Fusion_processing::Fusion_processing()
 	local_nh.param("image_topic", image_topic, string("/chroma_proc/image"));
 	local_nh.param("image_dif_topic", image_dif_topic, string("/chroma_proc/image_dif"));
 	local_nh.param("depth_topic", depth_topic, string("/depth_proc/image"));
-	local_nh.param("depth_dif_topic", depth_dif_topic, string("/depth_proc/image_dif"));
 	local_nh.param("project_path",path_, string(""));
 	local_nh.param("playback_topics", playback_topics, false);
 	local_nh.param("write_csv", write_csv, false);
@@ -26,14 +25,12 @@ Fusion_processing::Fusion_processing()
 		depth_topic += "/compressedDepth";
     } 
 	
-	
     
     ImageSubscriber *image_sub  = new ImageSubscriber(it_, image_topic, 3 );
     ImageSubscriber *image_dif_sub  = new ImageSubscriber(it_, image_dif_topic, 3 );
     ImageSubscriber *depth_sub  = new ImageSubscriber(it_, depth_topic, 3 );
-    ImageSubscriber *depth_dif_sub  = new ImageSubscriber(it_, depth_dif_topic, 3 );
-	sync = new message_filters::Synchronizer< MySyncPolicy >( MySyncPolicy( 5 ), *image_sub, *image_dif_sub, *depth_sub, *depth_dif_sub );
-    sync->registerCallback( boost::bind( &Fusion_processing::callback, this, _1, _2, _3, _4 ) );
+	sync = new message_filters::Synchronizer< MySyncPolicy >( MySyncPolicy( 5 ), *image_sub, *image_dif_sub, *depth_sub );
+    sync->registerCallback( boost::bind( &Fusion_processing::callback, this, _1, _2, _3) );
     
     results_publisher = local_nh.advertise<fusion::FusionMsg>(results_topic, 1000);
 
@@ -51,37 +48,25 @@ Fusion_processing::~Fusion_processing()
 	
 }
 
-void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, const sensor_msgs::ImageConstPtr& chroma_dif_msg, const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::ImageConstPtr& depth_dif_msg)
+void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, const sensor_msgs::ImageConstPtr& chroma_dif_msg, const sensor_msgs::ImageConstPtr& depth_msg)
 {
 	Mat fusion;
 	Mat chroma;
 	Mat chroma_dif;
 	Mat depth;
-	Mat depth_dif;
 	vector< Rect_<int> > fusion_rects;
 	cv_bridge::CvImagePtr cv_ptr;
 	cv_bridge::CvImagePtr cv_ptr_dif;
 	cv_bridge::CvImagePtr cv_ptr_depth;
-	cv_bridge::CvImagePtr cv_ptr_depth_dif;
 	
 	
 	cv_ptr = cv_bridge::toCvCopy(chroma_msg, sensor_msgs::image_encodings::MONO8);	
 	cv_ptr_dif = cv_bridge::toCvCopy(chroma_dif_msg, sensor_msgs::image_encodings::MONO8);	
 	cv_ptr_depth = cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_32FC1);
-	cv_ptr_depth_dif = cv_bridge::toCvCopy(depth_dif_msg, sensor_msgs::image_encodings::MONO8);
 	
 	chroma = (cv_ptr->image).clone();
 	chroma_dif = (cv_ptr_dif->image).clone();
 	depth = (cv_ptr_depth->image).clone();
-	depth_dif = (cv_ptr_depth_dif->image).clone();
-	//~ imshow("chroma", chroma);
-	//~ moveWindow("chroma", 0, 0);
-	//~ imshow("chroma_dif", chroma_dif);
-	//~ moveWindow("chroma_dif", 645, 0);
-	//~ imshow("depth", depth);
-	//~ moveWindow("depth", 0, 550);
-	//~ imshow("depth_dif", depth_dif);
-	//~ moveWindow("depth_dif", 645, 550);
 	
 	//Fuse the gray and depth images
 	fusion = chroma_dif;
@@ -160,7 +145,9 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 		depthToGray(depth_rect, depth_rect, min_depth, max_depth);
 		
 		depth_rect.copyTo(depth_filtered(rect));
-		if(display){
+		
+		if(display)
+		{
 			imshow("fusion", fusion);
 			moveWindow("fusion", 0, 0);
 			imshow("depth_filt", depth_filtered);
@@ -190,34 +177,31 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 		
 		if(write_csv)
 		{
-			writeCSV(people, session_path);
-		}	
+
+			ros::Time time = cv_ptr->header.stamp;
+			writeCSV(people, session_path, time);
+		}		
 
 		publishResults(people);
+
 		
 	}
 	
 }
 
-void Fusion_processing::writeCSV(People& collection, string path)
+void Fusion_processing::writeCSV(People& collection, string path, ros::Time time)
 {		
 	if (!collection.tracked_boxes.empty())
 	{
-		ofstream storage;
+		ofstream storage(path + "/session.csv" ,ios::out | ios::app );
 		
-		char const *pchar = (path + "/csv/session.csv").c_str();  
-		storage.open (pchar,ios::out | ios::app );
-		
-		gettimeofday(&tv, NULL); 
-		curtime=tv.tv_sec;
-		strftime(timeBuf,sizeof(timeBuf),"%T:",localtime(&curtime));
 		
 		for(int i = 0; i < collection.tracked_boxes.size() ; i++) 
 		{
 			Rect box = collection.tracked_boxes[i];
 			Position pos = collection.tracked_pos[i];
 			storage
-				<<timeBuf<<int(tv.tv_usec/10000)<<"\t"
+				<<time<<"\t"
 				<<i<<"\t"
 				<<box.x<<"\t"
 				<<box.y<<"\t"
