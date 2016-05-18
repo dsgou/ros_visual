@@ -101,20 +101,20 @@ check where your system has  stored it and add the directory in the CMAkeList.tx
       
 ```
  roslaunch openni_launch openni.launch  (kinect drivers)
- roslaunch ros_visual config.xml    (run project)
+ roslaunch ros_visual ros_visual.launch    (run project)
 ```
 
 * ... or in case openni_launch fails, could also try freenect instead:
 ```
  roslaunch freenect_launch freenect.launch
- roslaunch ros_visual config.xml
+ roslaunch ros_visual ros_visual.launch
 ```
 
 * To run a rosbag:
 - Edit config.launch: playback_topics = True
 - Run in terminal:
 ```
-roslaunch ros_visual ros_visual.xml 
+roslaunch ros_visual ros_visual.launch
 rosbag play bagfile.bag
 ```
 
