@@ -36,6 +36,18 @@ If you want to test the code without setting up your own catkin workspace, you c
 ```
  vagrant init gstavrinos/ROS_Indigo64; vagrant up --provider virtualbox
  ```
+ The above commands will initialize the base box and then run it using vitualbox. You can then open virtualbox and access the virtual machine using the graphical user interface. Log in as ros user, using the password ros. Now open a terminal, and test the ros_visual package:
+ ```
+roslaunch ros_visual ros_visual.launch
+ ```
+ Now you need to provide some input to ros_visual, using the test.bag file (You might need to play the test.bag file multiple times, since it is ~7.5 seconds long). On a new terminal, run:
+ ```
+rosbag play /home/ros/test.bag
+ ```
+ In order to see the results of the rgb-depth fusion, on a new terminal, run:
+ ```
+rostopic echo /fusion/results
+ ```
   
 ### Set up ###
 
@@ -101,20 +113,20 @@ check where your system has  stored it and add the directory in the CMAkeList.tx
       
 ```
  roslaunch openni_launch openni.launch  (kinect drivers)
- roslaunch ros_visual config.xml    (run project)
+ roslaunch ros_visual ros_visual.launch    (run project)
 ```
 
 * ... or in case openni_launch fails, could also try freenect instead:
 ```
  roslaunch freenect_launch freenect.launch
- roslaunch ros_visual config.xml
+ roslaunch ros_visual ros_visual.launch
 ```
 
 * To run a rosbag:
 - Edit config.launch: playback_topics = True
 - Run in terminal:
 ```
-roslaunch ros_visual ros_visual.xml 
+roslaunch ros_visual ros_visual.launch
 rosbag play bagfile.bag
 ```
 
