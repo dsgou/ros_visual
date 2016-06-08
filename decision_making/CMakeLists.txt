@@ -1,0 +1,34 @@
+cmake_minimum_required(VERSION 2.8.3)
+project(decision_making)
+
+set(CMAKE_CXX_FLAGS "-std=c++11")
+
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  std_msgs
+  fusion
+)
+catkin_package()
+
+aux_source_directory(src/ SRC_LIST)
+
+include_directories(
+  include
+  /usr/include/
+  ${catkin_INCLUDE_DIRS}
+)
+
+link_directories(
+  /usr/lib/
+  /usr/local/lib/ 
+  /usr/lib/x86_64-linux-gnu/ 
+)
+
+add_executable(decision_making ${SRC_LIST})
+
+add_dependencies(decision_making ${fusion_EXPORTED_TARGETS})
+add_dependencies(decision_making ${catkin_EXPORTED_TARGETS})
+
+target_link_libraries(${PROJECT_NAME} 
+  ${catkin_LIBRARIES}
+)

@@ -17,6 +17,11 @@
 		<rosparam file="$(find fusion)/config/parameters.yaml" command="load" />
 		<param name="project_path" value="$(find ros_visual)" />
 	</node>
+	
+	<node pkg="decision_making" type="decision_making" name="decision_making" output="screen">
+		<rosparam file="$(find decision_making)/config/parameters.yaml" command="load" />
+		<param name="project_path" value="$(find ros_visual)" />
+	</node>
 
 </launch>
 
