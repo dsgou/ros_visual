@@ -3,4 +3,5 @@ project_path: find(ros_visual)
 display: false
 min_depth: 0
 max_depth: 6000
+write_csv: true
 camera_frame: "camera_link"

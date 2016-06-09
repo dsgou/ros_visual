@@ -8,6 +8,9 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   fusion
 )
+
+find_package(Boost  COMPONENTS filesystem)
+
 catkin_package()
 
 aux_source_directory(src/ SRC_LIST)
@@ -16,6 +19,7 @@ include_directories(
   include
   /usr/include/
   ${catkin_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
 )
 
 link_directories(
@@ -31,4 +35,5 @@ add_dependencies(decision_making ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(${PROJECT_NAME} 
   ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
 )

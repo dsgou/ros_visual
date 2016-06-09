@@ -4,14 +4,18 @@
 #include <vector>
 #include <math.h>
 #include <iostream>
+#include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <time.h>
 #include <limits>
 #include <exception>
+#include <boost/filesystem.hpp>
 
 #include <fusion/FusionMsg.h>
 #include <fusion/Box.h>
+
 
 using namespace std;
 
@@ -53,7 +57,12 @@ class Decision_making
         Decision_making();	
 		
         void callback(const fusion::FusionMsg::ConstPtr& msg);
+        
         float median(vector<float> values);
+        string initialize(string path_, bool create_csv);
+        string getTime(string format);
+
+
 
     private:
         ros::NodeHandle nh_;
@@ -62,6 +71,8 @@ class Decision_making
         string session_path;
         string results_topic;
         bool display;
+        bool write_csv;
+		struct tm gmtm;
         int frameCounter = -1;
             
         vector<Box> boxes;

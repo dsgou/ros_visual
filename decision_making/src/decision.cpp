@@ -9,9 +9,14 @@ Decision_making::Decision_making()
 	local_nh.param("project_path",path_, string(""));
 	local_nh.param("max_depth", max_depth, DEPTH_MAX);
 	local_nh.param("min_depth", min_depth, DEPTH_MIN);
+	local_nh.param("write_csv", write_csv, false);
 
     fusion_sub = nh_.subscribe(results_topic, 1, &Decision_making::callback, this);
-
+    
+    if(write_csv)
+    {
+		session_path = initialize(path_, true);
+	}
 }
 
 void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
@@ -101,7 +106,21 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
                 float dist_median = median(distances.at(i));
                 vector<Decision_making::Box> temp_boxes = *it;
                 if(temp_boxes.size() > 1)
-                    temp_boxes.front().pos.acc_distance = dist + temp_boxes.at(1).pos.acc_distance;
+                {
+                    float prev_dist = temp_boxes.at(1).pos.acc_distance;
+                    dist += prev_dist;
+                    temp_boxes.front().pos.acc_distance = dist;
+                    if(dist > 4000 && prev_dist < 4000 && write_csv)
+                    {
+                        ros::Time time = msg->header.stamp;
+                        ofstream storage(session_path + "/decision_making.csv" ,ios::out | ios::app );
+                        storage
+                        <<time<<"\t"
+                        <<i<<"\t"
+                        <<"4\t"
+                        <<endl;
+                    }
+                }
                 else
                     temp_boxes.front().pos.acc_distance = dist;
                 *it = temp_boxes;
@@ -144,15 +163,49 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
         //~ }
         //~ cout<<endl;
     //~ }
-    for(vector<vector<Decision_making::Box>>::iterator it = boxes_hist.begin(); it < boxes_hist.end(); it++)
-    {
-        for(Decision_making::Box box: *it)
-        {
-            cout<<box.pos.acc_distance<<endl;
-        }
-        cout<<endl;
-    }
-    cout<<endl;
+    //~ for(vector<vector<Decision_making::Box>>::iterator it = boxes_hist.begin(); it < boxes_hist.end(); it++)
+    //~ {
+        //~ for(Decision_making::Box box: *it)
+        //~ {
+            //~ cout<<box.pos.acc_distance<<endl;
+        //~ }
+        //~ cout<<endl;
+    //~ }
+    //~ cout<<endl;
+}
+
+string Decision_making::initialize(string path_, bool create_csv)
+{
+	
+	string session_path = path_ + "/sessions/";
+	
+	//~ Getting current time
+	string time = getTime("%d-%m-%Y_%X");
+	
+	//~ Creating session directory
+	boost::filesystem::detail::create_directory(session_path);
+	
+	session_path = (session_path + time);
+	boost::filesystem::detail::create_directory(session_path);
+	
+	if(create_csv)
+	{
+		ofstream storage(session_path + "/decision_making.csv", ios::out | ios::app );
+		storage<<"Timestamp\tRect_id\tAnnotation"<<endl;
+		storage.close();
+	}
+	return session_path;
+    
+}
+
+string Decision_making::getTime(string format)
+{
+	
+	time_t now = time(0);
+    gmtm = *localtime(&now);
+    char buf[80];
+	strftime(buf, sizeof(buf), format.c_str(), &gmtm);
+	return buf;
 }
 
 float Decision_making::median(vector<float> values)

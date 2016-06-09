@@ -53,7 +53,6 @@
 	//Position estimation
 	void calculatePosition(Rect& rect, Position& pos, int width = 640, int height = 480, int Hfield = 58, int Vfield = 45);
 	
-	
 	//Region growing algorithms
 	void upVerticalFill(Mat& src, float threshold, bool flag);
 	void upVerticalFill2(Mat& src, float threshold, bool scale);
@@ -63,7 +62,6 @@
 	//Background & foreground estimation, to be used in sequence
 	void estimateBackground(Mat& src, Mat& dst, vector<Mat>& storage, int recursion, float ratio = 0.04, int index = 0);
 	void estimateForeground(Mat& src1, Mat& src2, Mat& dst);
-	
 	
 	void frameDif(Mat& src1, Mat& src2, Mat& dst, float threshold);
 		
