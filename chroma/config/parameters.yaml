@@ -1,8 +1,8 @@
-image_topic: "/camera/rgb/image_raw"
-image_out_topic: "/chroma_proc/image"
+image_topic        : "/camera/rgb/image_raw"
+image_out_topic    : "/chroma_proc/image"
 image_out_dif_topic: "/chroma_proc/image_dif"
-playback_topics: false
-display: false
-chroma_width: 1280
-chroma_height: 1024
+playback_topics    : false
+display            : false
+chroma_width       : 1280
+chroma_height      : 1024
 

@@ -1,7 +1,9 @@
-results_topic: "/fusion/results"
-project_path: find(ros_visual)
-display: false
-min_depth: 0
-max_depth: 6000
-write_csv: true
-camera_frame: "camera_link"
+camera_frame    : "camera_link"
+project_path    : find(ros_visual)
+results_topic   : "/fusion/results"
+csv_fields      : "Timestamp, Rect_Id, Annotation"
+min_depth       : 0
+max_depth       : 6000
+create_directory: true
+write_csv       : true
+display         : false

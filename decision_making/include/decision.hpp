@@ -11,6 +11,7 @@
 #include <time.h>
 #include <limits>
 #include <exception>
+#include <sstream>  
 #include <boost/filesystem.hpp>
 
 #include <fusion/FusionMsg.h>
@@ -59,7 +60,7 @@ class Decision_making
         void callback(const fusion::FusionMsg::ConstPtr& msg);
         
         float median(vector<float> values);
-        string initialize(string path_, bool create_csv);
+        string create_directory(string path_, bool create_csv, vector<string> fields);
         string getTime(string format);
 
 
@@ -70,7 +71,9 @@ class Decision_making
         string path_;
         string session_path;
         string results_topic;
+        string csv_fields;
         bool display;
+        bool create_dir;
         bool write_csv;
 		struct tm gmtm;
         int frameCounter = -1;

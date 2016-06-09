@@ -1,10 +1,10 @@
-depth_topic: "/camera/depth/image_raw"
+depth_topic          : "/camera/depth/image_raw"
 depth_out_image_topic: "/depth_proc/image"
-playback_topics: false
-display: false
-min_depth: 0
-max_depth: 6000
-hor_field: 58
-ver_field: 45
-depth_width: 640
-depth_height: 480
+playback_topics      : false
+display              : false
+hor_field            : 58
+ver_field            : 45
+depth_width          : 640
+depth_height         : 480
+min_depth            : 0
+max_depth            : 6000

@@ -8,31 +8,27 @@ Utility::~Utility()
 {
 }
 
-string Utility::initialize(string path_, bool create_csv, bool save_images)
+string Utility::create_directory(string path_, bool create_csv, vector<string> fields, bool save_images)
 {
 	
 	string session_path = path_ + "/sessions/";
 	
 	//~ Getting current time
 	string time = getTime("%d-%m-%Y_%X");
-	
+    
 	//~ Creating session directory
 	boost::filesystem::detail::create_directory(session_path);
 	
 	session_path = (session_path + time);
 	boost::filesystem::detail::create_directory(session_path);
 	
-	
-	if(save_images)
-	{
-		boost::filesystem::detail::create_directory(session_path + "/images/");
-		boost::filesystem::detail::create_directory(session_path + "/depth/");
-	
-	}
 	if(create_csv)
 	{
-		ofstream storage(session_path + "/session.csv", ios::out | ios::app );
-		storage<<"Timestamp\tRect_id\tRect_x\tRect_y\tRect_W\tRect_H\tMeter_X\tMeter_Y\tMeter_Z\tTop\tHeight\tDistance"<<endl;
+		ofstream storage(session_path + "/fusion.csv", ios::out | ios::app );
+        for(string f: fields)
+            storage<<f<<"\t";
+            
+        storage<<endl;
 		storage.close();
 	}
 	return session_path;

@@ -12,6 +12,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sstream>
 #include <iostream>
 #include <opencv2/highgui/highgui.hpp>
 #include <boost/filesystem.hpp>
@@ -26,7 +27,7 @@ class Utility
 		Utility();
 		~Utility();
 		
-		string initialize(string path_, bool create_csv, bool save_images);
+		string create_directory(string path_, bool create_csv, vector<string> fields, bool save_images);
 		void storeImage(Mat image, string session_path);
 		void storeDepth(Mat image, string session_path);
 		string getTime(string format);

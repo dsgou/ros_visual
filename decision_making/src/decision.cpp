@@ -5,18 +5,29 @@ Decision_making::Decision_making()
 {
 	 //Getting the parameters specified by the launch file 
 	ros::NodeHandle local_nh("~");
-	local_nh.param("results_topic", results_topic, string("results"));
-	local_nh.param("project_path",path_, string(""));
-	local_nh.param("max_depth", max_depth, DEPTH_MAX);
-	local_nh.param("min_depth", min_depth, DEPTH_MIN);
-	local_nh.param("write_csv", write_csv, false);
+	local_nh.param("results_topic"   , results_topic   , string("results"));
+	local_nh.param("project_path"    , path_           , string(""));
+	local_nh.param("csv_fields"      , csv_fields      , string(""));
+	local_nh.param("max_depth"       , max_depth       , DEPTH_MAX);
+	local_nh.param("min_depth"       , min_depth       , DEPTH_MIN);
+	local_nh.param("create_directory", create_dir      , false);
+	local_nh.param("write_csv"       , write_csv       , false);
 
     fusion_sub = nh_.subscribe(results_topic, 1, &Decision_making::callback, this);
     
-    if(write_csv)
+    if(create_dir)
     {
-		session_path = initialize(path_, true);
-	}
+        string temp;
+        vector<string> fields;
+        stringstream stream(csv_fields);
+        while(stream >> temp)
+        {
+            replace(temp.begin(), temp.end(), ',', ' ');
+            fields.push_back(temp);
+        }
+        session_path = create_directory(path_, write_csv, fields);
+    }
+	
 }
 
 void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
@@ -28,16 +39,16 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
     for(const fusion::Box_<std::allocator<void> > box_ :msg->boxes)
     {
         Decision_making::Box box;
-        box.id = box_.id;
-        box.rect.x = box_.rect.x;
-        box.rect.y = box_.rect.y;
-        box.rect.width = box_.rect.width;
-        box.rect.height = box_.rect.height;
-        box.pos.x = box_.pos.x;
-        box.pos.y = box_.pos.y;
-        box.pos.z = box_.pos.z;
-        box.pos.top = box_.pos.top;
-        box.pos.height = box_.pos.height;
+        box.id           = box_.id;
+        box.rect.x       = box_.rect.x;
+        box.rect.y       = box_.rect.y;
+        box.rect.width   = box_.rect.width;
+        box.rect.height  = box_.rect.height;
+        box.pos.x        = box_.pos.x;
+        box.pos.y        = box_.pos.y;
+        box.pos.z        = box_.pos.z;
+        box.pos.top      = box_.pos.top;
+        box.pos.height   = box_.pos.height;
         box.pos.distance = box_.pos.distance;
         
         if(boxes_hist.size() < box.id + 1)
@@ -55,9 +66,7 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
             inserted.at(box.id) = true;
         }
     }
-    
     //~ cout<<"---"<<endl;
-    
     int i = 0;
     for(vector<vector<Decision_making::Box>>::iterator it = boxes_hist.begin(); it < boxes_hist.end(); it++, i++)
     {
@@ -115,10 +124,10 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
                         ros::Time time = msg->header.stamp;
                         ofstream storage(session_path + "/decision_making.csv" ,ios::out | ios::app );
                         storage
-                        <<time<<"\t"
-                        <<i<<"\t"
-                        <<"4\t"
-                        <<endl;
+                            <<time<<"\t"
+                            <<i<<"\t"
+                            <<"4\t"<<
+                        endl;
                     }
                 }
                 else
@@ -127,15 +136,13 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
                 distances.at(i).insert(distances.at(i).begin(), dist_median);
                 if(distances.at(i).size() > 7)
                     distances.at(i).pop_back();
-                    
             }
         }
     }
     
-    
-    vector<vector<Decision_making::Box>>::iterator boxes_it = boxes_hist.begin();
+    vector<vector<float>>::iterator dist_it                    = distances.begin();
+    vector<vector<Decision_making::Box>>::iterator boxes_it    = boxes_hist.begin();
     vector<vector<Decision_making::Position>>::iterator pos_it = positions.begin();
-    vector<vector<float>>::iterator dist_it = distances.begin();
     for(vector<bool>::iterator bool_it = inserted.begin(); bool_it < inserted.end(); bool_it++, boxes_it++, dist_it++, pos_it++)
     {
         bool flag  = *bool_it;
@@ -174,14 +181,14 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
     //~ cout<<endl;
 }
 
-string Decision_making::initialize(string path_, bool create_csv)
+string Decision_making::create_directory(string path_, bool create_csv, vector<string> fields)
 {
 	
 	string session_path = path_ + "/sessions/";
 	
 	//~ Getting current time
 	string time = getTime("%d-%m-%Y_%X");
-	
+    
 	//~ Creating session directory
 	boost::filesystem::detail::create_directory(session_path);
 	
@@ -191,7 +198,10 @@ string Decision_making::initialize(string path_, bool create_csv)
 	if(create_csv)
 	{
 		ofstream storage(session_path + "/decision_making.csv", ios::out | ios::app );
-		storage<<"Timestamp\tRect_id\tAnnotation"<<endl;
+        for(string f: fields)
+            storage<<f<<"\t";
+            
+        storage<<endl;
 		storage.close();
 	}
 	return session_path;

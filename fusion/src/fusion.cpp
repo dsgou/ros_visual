@@ -6,17 +6,19 @@ Fusion_processing::Fusion_processing()
 {
 	 //Getting the parameters specified by the launch file 
 	ros::NodeHandle local_nh("~");
-	local_nh.param("results_topic", results_topic, string("results"));
-	local_nh.param("image_topic", image_topic, string("/chroma_proc/image"));
-	local_nh.param("image_dif_topic", image_dif_topic, string("/chroma_proc/image_dif"));
-	local_nh.param("depth_topic", depth_topic, string("/depth_proc/image"));
-	local_nh.param("project_path",path_, string(""));
-	local_nh.param("playback_topics", playback_topics, false);
-	local_nh.param("write_csv", write_csv, false);
-	local_nh.param("display", display, false);
-	local_nh.param("max_depth", max_depth, DEPTH_MAX);
-	local_nh.param("min_depth", min_depth, DEPTH_MIN);
-	local_nh.param("camera_frame", camera_frame, string("camera_link"));
+	local_nh.param("camera_frame" 	 , camera_frame		, string("camera_link"));
+	local_nh.param("results_topic"	 , results_topic	, string("results"));
+	local_nh.param("image_topic"	 , image_topic		, string("/chroma_proc/image"));
+	local_nh.param("image_dif_topic" , image_dif_topic  , string("/chroma_proc/image_dif"));
+	local_nh.param("depth_topic"     , depth_topic		, string("/depth_proc/image"));
+	local_nh.param("project_path"	 , path_ 			, string(""));
+	local_nh.param("csv_fields"		 , csv_fields 		, string(""));
+	local_nh.param("playback_topics" , playback_topics  , false);
+	local_nh.param("create_directory", create_directory , false);
+	local_nh.param("write_csv"		 , write_csv 		, false);
+	local_nh.param("display"		 , display 			, false);
+	local_nh.param("max_depth"		 , max_depth 		, DEPTH_MAX);
+	local_nh.param("min_depth"		 , min_depth 		, DEPTH_MIN);
 
 	if(playback_topics)
 	{
@@ -26,19 +28,28 @@ Fusion_processing::Fusion_processing()
     } 
 	
     
-    ImageSubscriber *image_sub  = new ImageSubscriber(it_, image_topic, 3 );
+    ImageSubscriber *image_sub  	= new ImageSubscriber(it_, image_topic, 3 );
     ImageSubscriber *image_dif_sub  = new ImageSubscriber(it_, image_dif_topic, 3 );
-    ImageSubscriber *depth_sub  = new ImageSubscriber(it_, depth_topic, 3 );
+    ImageSubscriber *depth_sub  	= new ImageSubscriber(it_, depth_topic, 3 );
+    
 	sync = new message_filters::Synchronizer< MySyncPolicy >( MySyncPolicy( 5 ), *image_sub, *image_dif_sub, *depth_sub );
     sync->registerCallback( boost::bind( &Fusion_processing::callback, this, _1, _2, _3) );
     
     results_publisher = local_nh.advertise<fusion::FusionMsg>(results_topic, 1000);
-
-    if(write_csv)
+	
+	if(create_directory)
     {
-	    Utility u;
-		session_path = u.initialize(path_, true, false);
-	}
+        string temp;
+        vector<string> fields;
+        stringstream stream(csv_fields);
+        while(stream >> temp)
+        {
+			replace(temp.begin(), temp.end(), ',', ' ');
+            fields.push_back(temp);
+        }
+        Utility u;
+		session_path = u.create_directory(path_, write_csv, fields, false);
+    }
 }
 
 Fusion_processing::~Fusion_processing()
@@ -60,13 +71,13 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 	cv_bridge::CvImagePtr cv_ptr_depth;
 	
 	
-	cv_ptr = cv_bridge::toCvCopy(chroma_msg, sensor_msgs::image_encodings::MONO8);	
-	cv_ptr_dif = cv_bridge::toCvCopy(chroma_dif_msg, sensor_msgs::image_encodings::MONO8);	
+	cv_ptr 		 = cv_bridge::toCvCopy(chroma_msg, sensor_msgs::image_encodings::MONO8);	
+	cv_ptr_dif 	 = cv_bridge::toCvCopy(chroma_dif_msg, sensor_msgs::image_encodings::MONO8);	
 	cv_ptr_depth = cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_32FC1);
 	
-	chroma = (cv_ptr->image).clone();
-	chroma_dif = (cv_ptr_dif->image).clone();
-	depth = (cv_ptr_depth->image).clone();
+	chroma 		= (cv_ptr->image).clone();
+	chroma_dif 	= (cv_ptr_dif->image).clone();
+	depth 		= (cv_ptr_depth->image).clone();
 	
 	//Fuse the gray and depth images
 	fusion = chroma_dif;
@@ -81,10 +92,10 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 	//Check which tracked box has the highest rank
 	//and draw the boxes for visualization
 	Rect rect;
-	int rank = -1;
-	int index = -1;
 	Position pos;
-	int end = people.tracked_rankings.size();
+	int rank  = -1;
+	int index = -1;
+	int end	  = people.tracked_rankings.size();
 	for(int i = 0; i < end; i++)
 	{
 		people.tracked_pos.push_back(pos);
@@ -212,7 +223,7 @@ void Fusion_processing::writeCSV(People& collection, string path, ros::Time time
 				<<pos.top<<"\t"
 				<<pos.height<<"\t"
 				<<pos.distance<<
-				endl;
+			endl;
 				
 		}
 		storage.close();
