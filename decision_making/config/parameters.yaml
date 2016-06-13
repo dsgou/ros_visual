@@ -1,6 +1,7 @@
 camera_frame    : "camera_link"
 project_path    : find(ros_visual)
 results_topic   : "/fusion/results"
+events_topic   : "/events"
 csv_fields      : "Timestamp, Rect_Id, Annotation"
 min_depth       : 0
 max_depth       : 6000

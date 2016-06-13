@@ -16,7 +16,7 @@
 
 #include <fusion/FusionMsg.h>
 #include <fusion/Box.h>
-
+#include <decision_making/Event.h>
 
 using namespace std;
 
@@ -68,15 +68,19 @@ class Decision_making
     private:
         ros::NodeHandle nh_;
         ros::Subscriber fusion_sub;
+        ros::Publisher results_publisher;
+		string camera_frame;
         string path_;
         string session_path;
         string results_topic;
+        string events_topic;
         string csv_fields;
         bool display;
         bool create_dir;
         bool write_csv;
 		struct tm gmtm;
         int frameCounter = -1;
+        ros::Time standUp_time = ros::Time(0);
             
         vector<Box> boxes;
         vector<vector<Box>> boxes_hist;

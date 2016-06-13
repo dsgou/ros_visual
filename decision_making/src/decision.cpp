@@ -5,7 +5,9 @@ Decision_making::Decision_making()
 {
 	 //Getting the parameters specified by the launch file 
 	ros::NodeHandle local_nh("~");
+	local_nh.param("camera_frame" 	 , camera_frame		, string("camera_link"));
 	local_nh.param("results_topic"   , results_topic   , string("results"));
+	local_nh.param("events_topic"    , events_topic   , string("events"));
 	local_nh.param("project_path"    , path_           , string(""));
 	local_nh.param("csv_fields"      , csv_fields      , string(""));
 	local_nh.param("max_depth"       , max_depth       , DEPTH_MAX);
@@ -14,7 +16,8 @@ Decision_making::Decision_making()
 	local_nh.param("write_csv"       , write_csv       , false);
 
     fusion_sub = nh_.subscribe(results_topic, 1, &Decision_making::callback, this);
-    
+    results_publisher = local_nh.advertise<decision_making::Event>(events_topic, 1000);
+
     if(create_dir)
     {
         string temp;
@@ -32,6 +35,11 @@ Decision_making::Decision_making()
 
 void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
 {
+    decision_making::Event event_msg;
+    event_msg.header.stamp = ros::Time::now();
+    event_msg.header.frame_id = camera_frame;
+    event_msg.four_meter = false;
+    event_msg.stand_up = false;
     
     for(vector<bool>::iterator it = inserted.begin(); it < inserted.end(); it++)
         *it = false;
@@ -66,25 +74,32 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
             inserted.at(box.id) = true;
         }
     }
-    //~ cout<<"---"<<endl;
+    
+    
+    //Calculates the median distance and publishes the approximate time when
+    //a person has walked 4 meters
     int i = 0;
     for(vector<vector<Decision_making::Box>>::iterator it = boxes_hist.begin(); it < boxes_hist.end(); it++, i++)
     {
         vector<float> x_pos;
         vector<float> y_pos;
+        vector<float> top_pos;
         for(Decision_making::Box box: *it)
         {
             x_pos.push_back(box.pos.x);
             y_pos.push_back(box.pos.y);
+            top_pos.push_back(box.pos.top);
         }
         float x_median = median(x_pos);
         float y_median = median(y_pos);
+        float top_median = median(top_pos);
         
         if(positions.size() < i + 1)
         {
             Decision_making::Position pos;
             pos.x = x_median;
             pos.y = y_median;
+            pos.top = top_median;
             vector<Decision_making::Position> temp;
             temp.push_back(pos);
             positions.push_back(temp);
@@ -94,10 +109,42 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
             Decision_making::Position pos;
             pos = positions.at(i).front();
             float dist = sqrt(pow(x_median - pos.x, 2) + pow(y_median - pos.y, 2));
+            float top_dif = abs(top_median - pos.top);
             
+            if(top_dif > 3 && top_median > 200 && top_median < 900)
+            {
+                if(standUp_time.toSec() == 0)
+                    standUp_time = event_msg.header.stamp;
+            }
+            else
+            {
+                if(standUp_time.toSec() > 0)
+                {
+                    float duration = event_msg.header.stamp.toSec() - standUp_time.toSec();
+                    if((duration > 0.4) && (duration < 2.0))
+                    {
+                        ros::Time time = event_msg.header.stamp;
+                        ofstream storage(session_path + "/decision_making.csv" ,ios::out | ios::app );
+                        storage
+                            <<standUp_time<<"\t"
+                            <<i<<"\t"
+                            <<"2\t"<<
+                        endl;
+                        storage
+                            <<event_msg.header.stamp<<"\t"
+                            <<i<<"\t"
+                            <<"3\t"<<
+                        endl;
+                        event_msg.stand_up = true;
+                    }
+                }
+                standUp_time = ros::Time(0);
+            }
             pos.x = x_median;
             pos.y = y_median;
+            pos.top = top_median;
             positions.at(i).insert(positions.at(i).begin(), pos);
+            
             if(positions.at(i).size() > 7)
                 positions.at(i).pop_back();
             
@@ -128,6 +175,8 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
                             <<i<<"\t"
                             <<"4\t"<<
                         endl;
+                        event_msg.four_meter = true;
+                        
                     }
                 }
                 else
@@ -137,8 +186,20 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
                 if(distances.at(i).size() > 7)
                     distances.at(i).pop_back();
             }
+            
+            
+            
         }
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     vector<vector<float>>::iterator dist_it                    = distances.begin();
     vector<vector<Decision_making::Box>>::iterator boxes_it    = boxes_hist.begin();
@@ -161,6 +222,13 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
         
         }
     }
+    
+
+    
+    
+    
+    
+    results_publisher.publish(event_msg);
     
     //~ for(vector<float> dist: distances)
     //~ {

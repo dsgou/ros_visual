@@ -5,13 +5,26 @@ set(CMAKE_CXX_FLAGS "-std=c++11")
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  sensor_msgs
   std_msgs
+  message_generation
   fusion
+)
+
+add_message_files(
+  FILES
+  Event.msg
 )
 
 find_package(Boost  COMPONENTS filesystem)
 
-catkin_package()
+generate_messages(
+	DEPENDENCIES
+ 	 sensor_msgs
+	std_msgs
+)
+
+catkin_package(CATKIN_DEPENDS message_runtime std_msgs)
 
 aux_source_directory(src/ SRC_LIST)
 
