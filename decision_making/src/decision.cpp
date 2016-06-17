@@ -5,9 +5,9 @@ Decision_making::Decision_making()
 {
 	 //Getting the parameters specified by the launch file 
 	ros::NodeHandle local_nh("~");
-	local_nh.param("camera_frame" 	 , camera_frame		, string("camera_link"));
+	local_nh.param("camera_frame" 	 , camera_frame	   , string("camera_link"));
 	local_nh.param("results_topic"   , results_topic   , string("results"));
-	local_nh.param("events_topic"    , events_topic   , string("events"));
+	local_nh.param("events_topic"    , events_topic    , string("events"));
 	local_nh.param("project_path"    , path_           , string(""));
 	local_nh.param("csv_fields"      , csv_fields      , string(""));
 	local_nh.param("max_depth"       , max_depth       , DEPTH_MAX);
@@ -39,8 +39,7 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
     decision_making::Event event_msg;
     event_msg.header.stamp = msg->header.stamp;
     event_msg.header.frame_id = camera_frame;
-    event_msg.four_meter = false;
-    event_msg.stand_up = false;
+    event_msg.event = -1;
     
     for(vector<bool>::iterator it = inserted.begin(); it < inserted.end(); it++)
         *it = false;
@@ -138,7 +137,8 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
                             <<i<<"\t"
                             <<"3\t"<<
                         endl;
-                        event_msg.stand_up = true;
+                        event_msg.event = 3;
+                        results_publisher.publish(event_msg);
                     }
                 }
                 standUp_time = ros::Time(0);
@@ -178,8 +178,8 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
                             <<i<<"\t"
                             <<"4\t"<<
                         endl;
-                        event_msg.four_meter = true;
-                        
+                        event_msg.event = 4;
+                        results_publisher.publish(event_msg);
                     }
                 }
                 else
@@ -217,7 +217,7 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
         }
     }
         
-    results_publisher.publish(event_msg);
+    
     
     //~ for(vector<float> dist: distances)
     //~ {
