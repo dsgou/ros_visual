@@ -12,6 +12,7 @@ Decision_making::Decision_making()
 	local_nh.param("csv_fields"      , csv_fields      , string(""));
 	local_nh.param("max_depth"       , max_depth       , DEPTH_MAX);
 	local_nh.param("min_depth"       , min_depth       , DEPTH_MIN);
+	local_nh.param("history_size"    , history_size    , 7);
 	local_nh.param("create_directory", create_dir      , false);
 	local_nh.param("write_csv"       , write_csv       , false);
 
@@ -36,7 +37,7 @@ Decision_making::Decision_making()
 void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
 {
     decision_making::Event event_msg;
-    event_msg.header.stamp = ros::Time::now();
+    event_msg.header.stamp = msg->header.stamp;
     event_msg.header.frame_id = camera_frame;
     event_msg.four_meter = false;
     event_msg.stand_up = false;
@@ -69,7 +70,7 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
         else
         {
             boxes_hist.at(box.id).insert(boxes_hist.at(box.id).begin(), box);
-            if(boxes_hist.at(box.id).size() > 7)
+            if(boxes_hist.at(box.id).size() > history_size)
                 boxes_hist.at(box.id).pop_back();
             inserted.at(box.id) = true;
         }
@@ -77,7 +78,8 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
     
     
     //Calculates the median distance and publishes the approximate time when
-    //a person has walked 4 meters
+    //a person has walked 4 meters and the median_top and calculates when
+    //he stands up
     int i = 0;
     for(vector<vector<Decision_making::Box>>::iterator it = boxes_hist.begin(); it < boxes_hist.end(); it++, i++)
     {
@@ -106,6 +108,7 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
         }
         else
         {
+            
             Decision_making::Position pos;
             pos = positions.at(i).front();
             float dist = sqrt(pow(x_median - pos.x, 2) + pow(y_median - pos.y, 2));
@@ -145,7 +148,7 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
             pos.top = top_median;
             positions.at(i).insert(positions.at(i).begin(), pos);
             
-            if(positions.at(i).size() > 7)
+            if(positions.at(i).size() > history_size)
                 positions.at(i).pop_back();
             
             if(distances.size() < i + 1)
@@ -168,7 +171,7 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
                     temp_boxes.front().pos.acc_distance = dist;
                     if(dist > 4000 && prev_dist < 4000 && write_csv)
                     {
-                        ros::Time time = msg->header.stamp;
+                        ros::Time time = event_msg.header.stamp;
                         ofstream storage(session_path + "/decision_making.csv" ,ios::out | ios::app );
                         storage
                             <<time<<"\t"
@@ -183,7 +186,7 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
                     temp_boxes.front().pos.acc_distance = dist;
                 *it = temp_boxes;
                 distances.at(i).insert(distances.at(i).begin(), dist_median);
-                if(distances.at(i).size() > 7)
+                if(distances.at(i).size() > history_size)
                     distances.at(i).pop_back();
             }
             
@@ -191,16 +194,7 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
             
         }
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+        
     vector<vector<float>>::iterator dist_it                    = distances.begin();
     vector<vector<Decision_making::Box>>::iterator boxes_it    = boxes_hist.begin();
     vector<vector<Decision_making::Position>>::iterator pos_it = positions.begin();
@@ -222,12 +216,7 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
         
         }
     }
-    
-
-    
-    
-    
-    
+        
     results_publisher.publish(event_msg);
     
     //~ for(vector<float> dist: distances)

@@ -10,4 +10,4 @@ max_depth       : 6000
 playback_topics : false
 create_directory: true
 write_csv       : true
-display         : true
+display         : false

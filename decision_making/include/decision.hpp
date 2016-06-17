@@ -80,6 +80,7 @@ class Decision_making
         bool write_csv;
 		struct tm gmtm;
         int frameCounter = -1;
+        int history_size;
         ros::Time standUp_time = ros::Time(0);
             
         vector<Box> boxes;

@@ -186,14 +186,12 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 		//~ cout<<"Distance:  "<<people.tracked_pos[index].distance<<endl;
 		//~ cout<<endl;
 		
+		
+		ros::Time time = cv_ptr->header.stamp;
 		if(write_csv)
-		{
-
-			ros::Time time = cv_ptr->header.stamp;
 			writeCSV(people, session_path, time);
-		}		
 
-		publishResults(people);
+		publishResults(people, time);
 
 		
 	}
@@ -230,12 +228,12 @@ void Fusion_processing::writeCSV(People& collection, string path, ros::Time time
 	}
 }
 
-void Fusion_processing::publishResults(People& collection){
+void Fusion_processing::publishResults(People& collection, ros::Time time){
 	if (!collection.tracked_boxes.empty())
 	{
 		fusion::FusionMsg fmsg;
 
-		fmsg.header.stamp = ros::Time::now();
+		fmsg.header.stamp = time;
 		fmsg.header.frame_id = camera_frame;
 		
 		for(int i = 0; i < collection.tracked_boxes.size() ; i++) 

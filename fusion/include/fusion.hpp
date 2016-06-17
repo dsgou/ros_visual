@@ -41,7 +41,7 @@ class Fusion_processing
 		void callback(const sensor_msgs::Image::ConstPtr& chroma_msg, const sensor_msgs::Image::ConstPtr& chroma_dif_msg, const sensor_msgs::Image::ConstPtr& depth_msg);
 
 		void writeCSV(People& collection, string path, ros::Time time);
-		void publishResults(People& collection);
+		void publishResults(People& collection, ros::Time time);
 
 		
 		
