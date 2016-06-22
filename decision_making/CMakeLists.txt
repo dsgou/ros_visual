@@ -1,30 +1,21 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(fusion)
+project(decision_making)
 
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  cv_bridge
-  image_transport
   roscpp
   sensor_msgs
   std_msgs
   message_generation
-  vision
+  fusion
 )
 
 add_message_files(
   FILES
-  Position.msg
-  Rectangle.msg
-  Box.msg
-  FusionMsg.msg
+  Event.msg
 )
 
-find_package(OpenCV REQUIRED)
 find_package(Boost  COMPONENTS filesystem)
 
 generate_messages(
@@ -40,11 +31,8 @@ aux_source_directory(src/ SRC_LIST)
 include_directories(
   include
   /usr/include/
-  /usr/include/libalglib/
   ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
-  ${vision_INCLUDE_DIRS}
 )
 
 link_directories(
@@ -53,13 +41,12 @@ link_directories(
   /usr/lib/x86_64-linux-gnu/ 
 )
 
-add_executable(fusion ${SRC_LIST})
+add_executable(decision_making ${SRC_LIST})
 
+add_dependencies(decision_making ${fusion_EXPORTED_TARGETS})
+add_dependencies(decision_making ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(${PROJECT_NAME} 
   ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
   ${Boost_LIBRARIES}
-  ${vision_LIBRARIES}
 )
-
