@@ -36,10 +36,11 @@ Decision_making::Decision_making()
 
 void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
 {
-    decision_making::Event event_msg;
-    event_msg.header.stamp = msg->header.stamp;
+    decision_making::Event      event_msg;
+    event_msg.header.stamp    = msg->header.stamp;
     event_msg.header.frame_id = camera_frame;
-    event_msg.event = -1;
+    event_msg.type            = -1;
+    event_msg.description     = "";
     
     for(vector<bool>::iterator it = inserted.begin(); it < inserted.end(); it++)
         *it = false;
@@ -125,20 +126,20 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
                     float duration = event_msg.header.stamp.toSec() - standUp_time.toSec();
                     if((duration > 0.4) && (duration < 2.0))
                     {
-                        ros::Time time = event_msg.header.stamp;
+                        ros::Time time = event_msg.header.stamp + ros::Duration(duration/2);
+                        ros::Duration ros_duration = ros::Duration(duration) + ros::Duration(duration/2);
+                        event_msg.type = 3;
+                        event_msg.description = "stand up";
+                        event_msg.duration = ros_duration;
+                        results_publisher.publish(event_msg);
+                        
                         ofstream storage(session_path + "/decision_making.csv" ,ios::out | ios::app );
                         storage
-                            <<standUp_time<<"\t"
+                            <<time<<"\t"
                             <<i<<"\t"
-                            <<"2\t"<<
+                            <<"3\t"
+                            <<ros_duration<<
                         endl;
-                        storage
-                            <<event_msg.header.stamp<<"\t"
-                            <<i<<"\t"
-                            <<"3\t"<<
-                        endl;
-                        event_msg.event = 3;
-                        results_publisher.publish(event_msg);
                     }
                 }
                 standUp_time = ros::Time(0);
@@ -169,17 +170,25 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
                     float prev_dist = temp_boxes.at(1).pos.acc_distance;
                     dist += prev_dist;
                     temp_boxes.front().pos.acc_distance = dist;
-                    if(dist > 4000 && prev_dist < 4000 && write_csv)
+                    if(int(dist)%4000 < 500 && int(prev_dist)%4000 > 3500 && write_csv)
                     {
-                        ros::Time time = event_msg.header.stamp;
+                        ros::Time time         = event_msg.header.stamp + ros::Duration(0.25);
+                        event_msg.header.stamp = time;
+                        event_msg.type         = 4;
+                        event_msg.description  = "walked 4 meters";
+                        event_msg.duration     = ros::Duration(0);
+                        results_publisher.publish(event_msg);
+                        
+                        event_msg.header.stamp = msg->header.stamp;
+                        
                         ofstream storage(session_path + "/decision_making.csv" ,ios::out | ios::app );
                         storage
                             <<time<<"\t"
                             <<i<<"\t"
-                            <<"4\t"<<
+                            <<"4\t"
+                            <<ros::Duration(0)<<
                         endl;
-                        event_msg.event = 4;
-                        results_publisher.publish(event_msg);
+                        
                     }
                 }
                 else

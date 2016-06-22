@@ -8,6 +8,6 @@ csv_fields      : "Timestamp, Rect_id, Rect_x, Rect_y, Rect_W, Rect_H, Meter_X, 
 min_depth       : 0
 max_depth       : 6000
 playback_topics : false
-create_directory: false
-write_csv       : false
+create_directory: true
+write_csv       : true
 display         : true
