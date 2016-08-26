@@ -32,9 +32,9 @@ The concept of this project is to detect and track people in an indoor environme
       * Bounded boxes(areas of detected people)
  * Output:
       * Event detected
-* **ros_visual**
+* **Ros_visual**
     * Description: Meta package that serves to ease the initilization process. Contains launch files to avoid the burden of launching each node seperately.
-* **vision**
+* **Vision**
     * Description: Computer vision library that contains the core functionality of the project e.g. detecting and tracking people, producing measurements from the depth image etc.
 
 ### Vagrant Base Box ###
