@@ -1,11 +1,9 @@
 ### Description ###
-The concept of this project is to detect and track people in indoor environment and produce some statistics regarding
-their movement and physique(e.g. height).
-
+The concept of this project is to detect and track people in an indoor environment and recognize events regarding their movement. The visual information used consists of an RGB stream and a depth stream from an ASUS Xtion Pro or Microsoft Kinect.
 
 * **Chroma**
  * Description: 
-   Processes the RGB image to be more useful and publishes the processed version and the image difference  
+   This node is responsible for the preprocessing step of the RGB image. It performs some transformations on the RGB image(contrast, gamma) and publishes the processed version along with the frame difference of each RGB image from its previous. 
  * Input : 
      * RGB image
  * Output: 
@@ -13,23 +11,31 @@ their movement and physique(e.g. height).
      * RGB image difference
 * **Depth**
  * Description: 
-   Processes the depth image and corrects the holes and publishes the processed version and the depth difference
+   This node is responsible for the preprocessing step of the depth image. It attempts to fill areas where the sensor cannot calculate their depth(e.g. reflective surfaces) and publishes the processed version along with the frame difference of each depth image from its previous.
  * Input : 
        * depth image
  * Output: 
      * processed depth image
      * depth image difference
 * **Fusion**
- * Description: Combines the output of the Chroma and Depth nodes and produces high level statistics
+ * Description: This node is responsible for detecting and tracking people and calculating their physical measurements(e.g. locations in meters, height). The detection and tracking are performed on the RGB image which is more consistent and less error prone while the physical measurements are produced from the depth image. 
  * Input : 
-      * RGB image
+      * processed RGB image
       * RGB image difference
-      * depth image
+      * processed depth image
       * depth image difference
+ * Output:
+      * Bounded boxes(areas of detected people)
+* **Decision_making**
+ * Description: This node is responsible for detecting events of the people in our view. The events recognized are sitting up and walking 4 meters. To do so it collects the output of the Fusion node(bounded boxes) and uses their location(x,y,z) and height.  
+ * Input : 
+      * Bounded boxes(areas of detected people)
+ * Output:
+      * Event detected
 * **ros_visual**
-    * Description: High level package to help launch all the nodes and automate the process, only contains launch files
+    * Description: Meta package that serves to ease the initilization process. Contains launch files to avoid the burden of launching each node seperately.
 * **vision**
-    * Description: Computer vision library
+    * Description: Computer vision library that contains the core functionality of the project e.g. detecting and tracking people, producing measurements from the depth image etc.
 
 ### Vagrant Base Box ###
 If you want to test the code without setting up your own catkin workspace, you can use the provided vagrant base box. A .bag file is also included in the home folder of the ros user. In order to use this base box, you'll need to have the latest version of virtualbox installed. If you don't, please visit https://www.virtualbox.org/wiki/Downloads. After downloading virtualbox, and installing vagrant, you can run:
