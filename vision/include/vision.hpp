@@ -13,13 +13,9 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include <stdafx.h>
-#include <dataanalysis.h>
 
-
-	using namespace std;
-	using namespace cv;
-	using namespace alglib;
+using namespace std;
+using namespace cv;
 	
 	
 	
@@ -41,7 +37,7 @@
 	};
 		
 	//Detection and tracking of blobs
-	void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range);
+	void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool detect_people);
 	void track(vector< Rect_<int> >& current, People& collection, int rank = 3, float threshold = 0.2);
 	
 	//Depth estimation functions
@@ -71,7 +67,6 @@
 	void fixRects(vector< Rect_<int> >& rects, int screenW);
 	void depthToGray(Mat& src, Mat& dst, float min_depth, float max_depth);
 	void grayToDepth(Mat& src, Mat& dst, float max_depth);
-	kmeansreport clusterize(const vector<float>& vec, int clusters);
 
 
 #endif

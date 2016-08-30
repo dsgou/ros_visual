@@ -84,7 +84,7 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 	cv::threshold(fusion, fusion, 100, 255, THRESH_BINARY);
 	
 	//Detect moving blobs
-	detectBlobs(fusion, fusion_rects, 15);
+	detectBlobs(fusion, fusion_rects, 15, true);
 	
 	//Track blobs
 	track(fusion_rects, people);
