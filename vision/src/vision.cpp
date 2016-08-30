@@ -14,13 +14,13 @@
  */
 void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool detect_people)
 {
-	bool flag 	 		  = false;
-	int cols     		  = src.cols;
-	int rows 	 		  = src.rows;
-	int channels 		  = src.channels();
-	int size 			  = cols*rows*channels;
+	bool flag 	 		   = false;
+	int cols     		   = src.cols;
+	int rows 	 		   = src.rows;
+	int channels 		   = src.channels();
+	int size 			   = cols*rows*channels;
 	float detection_factor = 0.1; //threshold for the 1st fusing phase
-	float merge_factor 	  = 0.1; //threshold for the 2nd fusing phase
+	float merge_factor 	   = 0.1; //threshold for the 2nd fusing phase
 	
 	//Starting from the 1st non-zero pixel it starts forming rectangles (range x range)
 	//and fuses them if their intersection is above a certain threshold.
@@ -30,15 +30,13 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 		for(int x = 0; x < size; x = x + channels)
 		{
 			if(dif[x] != 0)
-			{
-				int i ,j, o;
-				i = (x/channels)%(cols);
-				j = floor(x/(cols*channels));
+			{				
+				int i = (x/channels)%(cols); 
+				int j = floor(x/(cols*channels));
 				
 				Rect_<int> removal;
-				if(i + range >= cols)
-					continue;
-				if(j + range >= rows)
+				//If the rect is out of bounds skip
+				if((i + range >= cols) || (j + range >= rows))
 					continue;
 				
 				removal = Rect(i, j, range , range);
@@ -49,13 +47,14 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 				{
 					for(int k = 0; k < colour_areas.size(); k++)
 					{
-						Rect_<int> rect = colour_areas[k];
-						Rect all = removal | rect;
-						int temp = removal.y;
-						removal.y = rect.y;
+						Rect_<int> rect   = colour_areas[k];
+						Rect all 		  = removal | rect;
+						int temp 		  = removal.y;
+						removal.y 		  = rect.y;
 						Rect intersection = removal & rect;
-						removal.y = temp;
-						int threshold = intersection.area();
+						removal.y 		  = temp;
+						int threshold 	  = intersection.area();
+						
 						if(threshold < 1)
 							continue;
 							
@@ -63,23 +62,21 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 						{
 							if(threshold > detection_factor*removal.area())
 							{
-								colour_areas[k] = all;
 								flag = true;
+								colour_areas[k] = all;
 							}
 						}
 						else
 						{
 							if(threshold > detection_factor*rect.area())
 							{
-								colour_areas[k] = all;
 								flag = true;
+								colour_areas[k] = all;
 							}
 						}
 					}
 					if(!flag)
-					{
 						colour_areas.push_back(removal);
-					}
 					else
 						flag = false;
 						
@@ -91,14 +88,14 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 						for(int b = a + 1; b < end; b++) 
 						{	
 							Rect_<int> removal = colour_areas[a];
-							Rect_<int> rect = colour_areas[b];
+							Rect_<int> rect    = colour_areas[b];
 							
-							Rect all = removal | rect;
-							int temp = removal.y;
-							removal.y = rect.y;
+							Rect all 		  = removal | rect;
+							int temp 		  = removal.y;
+							removal.y 		  = rect.y;
 							Rect intersection = removal & rect;
-							removal.y = temp;
-							int threshold = intersection.area();
+							removal.y 		  = temp;
+							int threshold 	  = intersection.area();
 							if(threshold < 1)
 								continue;
 								
@@ -131,10 +128,7 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 				
 				}
 				else
-				{
 					colour_areas.push_back(removal);
-				}
-				
 			}
 		}
 	}
@@ -143,18 +137,16 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 	//Filter out erroneous areas (dimensions < 0) that sometimes occur
 	for(int k = 0; k < end; k++)
 	{
+		float x  	 = colour_areas[k].x;
+		float y 	 = colour_areas[k].y;
 		float width  = colour_areas[k].width;
 		float height = colour_areas[k].height;
-		float x  = colour_areas[k].x;
-		float y = colour_areas[k].y;
 		if((x < 0) || (y < 0) || (height < 0) || (width < 0))
 		{
-			//~ rectangle(src, colour_areas[k], 0, CV_FILLED);
-			//~ cout<<"done"<<endl;
 			colour_areas[k] = colour_areas.back();
 			colour_areas.pop_back();
-			k = k <0? 0: k--;
-			end = end <0? 0: end--;
+			k   = k < 0? 0: k--;
+			end = end < 0? 0: end--;
 				
 		}
 	}
@@ -167,8 +159,8 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 		{
 			float width  = colour_areas[k].width;
 			float height = colour_areas[k].height;
-			float area = colour_areas[k].area();
-			float ratio = width/height;
+			float area   = colour_areas[k].area();
+			float ratio  = width/height;
 			if((ratio < 0.25) || (ratio > 1.5) || (area < cols*rows*0.02))
 			{
 				//~ rectangle(src, colour_areas[k], 0, CV_FILLED);
@@ -197,19 +189,17 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
  * 			- cur_boxes  : current image rectangles
  * 			- collection : the collection to be populated
  * 			- rank  	 : the initial rank of a new box, 
- * 			- threshold  :rectangle comparison threshold
+ * 			- threshold  : rectangle comparison threshold
  * 
  * RETURN --
  */
 void track(vector< Rect_<int> >& cur_boxes, People& collection, int rank, float threshold)
 {
 	bool exists = false;
-	float step = 1.2;
-	
+	float step  = 1.2;
 	
 	if(!cur_boxes.empty())
 	{	
-		
 		for(int a = 0; a < cur_boxes.size(); a++) 
 		{
 			exists = false;
@@ -255,7 +245,7 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int rank, float 
 		{
 			if(collection.tracked_rankings[a] <= 0 && collection.tracked_boxes.size() > 0)
 			{
-				collection.tracked_boxes[a] = collection.tracked_boxes.back();
+				collection.tracked_boxes[a]    = collection.tracked_boxes.back();
 				collection.tracked_boxes.pop_back();
 				collection.tracked_rankings[a] = collection.tracked_rankings.back();
 				collection.tracked_rankings.pop_back();
@@ -267,11 +257,16 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int rank, float 
 	}
 }
 
-/* Calculates and stores the real world coordinates (x, y, z) of a rectangle
+/* Calculates and stores the coordinates(x, y, z) in meters of a rectangle
  * in respect to the center of the camera.
  * 
  * PARAMETERS:
- * 			-Database object holding the found faces in the image
+ * 			- rect   : rectangle to be processed
+ * 			- pos    : object to save the measurements produced
+ * 			- width  : image width
+ * 			- height : image height
+ * 			- Hfield : camera horizontal field of view in degrees
+ * 			- Vfield : camera vertical field of view in degrees
  * 
  * RETURN: --
  * 
@@ -279,19 +274,17 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int rank, float 
 void calculatePosition(Rect& rect, Position& pos, int width, int height, int Hfield, int Vfield)
 {
 	
-	float hor_x = 0.0;
-	float hor_y = 0.0;
-	float ver_x = 0.0;
-	float ver_y = 0.0;
+	float hor_x 	= 0.0;
+	float hor_y 	= 0.0;
+	float ver_x 	= 0.0;
+	float ver_y 	= 0.0;
 	float hor_focal = 0.0;
 	float ver_focal = 0.0;
-	float depth = 0.0;
-	float distance = 0.0;
-	float top = 0.0;
-	float bottom = 0.0;
+	float distance  = 0.0;
+	float top 		= 0.0;
+	float bottom 	= 0.0;
+	float depth 	= pos.z;
 	
-	
-	depth = pos.z;
 	if (depth != 0.0)
 	{
 		
@@ -342,8 +335,8 @@ void calculatePosition(Rect& rect, Position& pos, int width, int height, int Hfi
 		else
 			ver_y = (height/2 - ver_y);
 			
-		bottom = depth * ver_y / hor_focal;
-		pos.top = abs(top);
+		bottom     = depth * ver_y / hor_focal;
+		pos.top    = abs(top);
 		pos.height = abs(top - bottom);
 	
 	}
@@ -351,15 +344,21 @@ void calculatePosition(Rect& rect, Position& pos, int width, int height, int Hfi
 }
 
 /* Estimates the foreground by combining static images, works for
- * images the contain edge information
+ * images that contain edge information
  * 
- * @param a mat representing the current image frame, a mat to store the result,
- *  the number of images to combine 
- * @return -
+ * PARAMETERS:
+ * 			- cur_mat  : mat holding the current image frame
+ * 			- back_Mat : mat to store the result
+ * 			- dst_Mat  : the number of images to combine 
+ * 
+ * RETURN: --
+ * 
  */
 void estimateForeground(Mat& cur_Mat, Mat& back_Mat, Mat& dst_Mat)
 {
-	uchar *back, *cur, *dst;
+	uchar *cur;
+	uchar *dst;
+	uchar *back;
 	for(int y = 0; y < 1; y++)
 	{
 		int rows	 = cur_Mat.rows;
@@ -368,29 +367,36 @@ void estimateForeground(Mat& cur_Mat, Mat& back_Mat, Mat& dst_Mat)
 		int size 	 = rows*cols*channels;
 	
 		back = back_Mat.ptr<uchar>(y);
-		cur = cur_Mat.ptr<uchar>(y);
-		dst = dst_Mat.ptr<uchar>(y);
+		cur  = cur_Mat.ptr<uchar>(y);
+		dst  = dst_Mat.ptr<uchar>(y);
 		for(int x = 0; x < size; x = x + channels)
 		{ 
 			if(back[x] != 0)
-			{
 				dst[x] = 0;
-			}
 		}
 	}
 }
 	
-/* Estimates the background by combining static images, works for
- * images the contain edge information
+/* Estimates the background by combining static images recursively, works for
+ * images the contain edge information. It recursively performs bitwise_and 
+ * to remove noise and keep only the motionless part of the image and bitwise_or
+ * at the produced images to fill parts of the images that were blocked from moving
+ * objects (e.g. people) 
  * 
- * @param a mat representing the current image frame, a mat to store the result,
- *  the number of images to combine 
- * @return -
+ * 
+ * PARAMETERS:
+ * 			- src 	    : mat holding the current image frame
+ * 			- dst 	    : mat to store the result
+ * 			- storage   : vector to store the intermediate images
+ * 			- recursion : number of recursions to perform
+ * 			- ratio 	: percent of the recursions that will bitwise_or operations
+ * 
+ * RETURN: --
  */
 void estimateBackground(Mat& src, Mat& dst, vector<Mat>& storage, int recursion, float ratio, int index)
 {
-	int size = storage.size();
 	Mat result;
+	int size = storage.size();
 	if (index > recursion)
 	{
 		dst = storage.at(index - 1);
@@ -423,32 +429,37 @@ void estimateBackground(Mat& src, Mat& dst, vector<Mat>& storage, int recursion,
 	}
 }
 
-/*Calculates the absolute difference between the two mats and thresholds the result according to the threshold given
+/* Calculates the absolute difference between the two mats and thresholds
+ * the result according to the threshold given
  * 
  * PARAMETERS:
- * 			-Mat first
- * 			-Mat second
- * 			-Mat with the result
- * 			-float threshold to be used
+ * 			- scr1 		: Mat first
+ * 			- scr2 		: Mat second
+ * 			- dst 		: destination Mat 
+ * 			- threshold : threshold to be used
  * 
  * RETURN: --
  */
 void frameDif(Mat& src1, Mat& src2, Mat& dst, float threshold)
 {
-	uchar *src, *temp, *dest;
+	uchar *src;
+	uchar *temp;
+	uchar *dest;
+	Mat temp_Mat;
+	
+	int cols 	 = src1.cols;
+	int rows 	 = src1.rows;
 	int channels = src1.channels();
-	int cols = src1.cols;
-	int rows = src1.rows;
-	int size = cols*rows*channels;
+	int size	 = cols*rows*channels;
 	int motionCounter = 0;
 	
-	Mat temp_Mat;
 	// Absolute dif between our current mat and the previous one 
 	absdiff(src1, src2, temp_Mat);
 	dst = src1.clone();
+	
 	for(int y = 0; y < 1; y++)
 	{
-		src = src1.ptr<uchar>(y);
+		src  = src1.ptr<uchar>(y);
 		temp = temp_Mat.ptr<uchar>(y);
 		dest = dst.ptr<uchar>(y);
 		for(int x = 0; x < size; x = x + channels)
@@ -479,8 +490,10 @@ void frameDif(Mat& src1, Mat& src2, Mat& dst, float threshold)
 
 /* Image gamma correction 
  *
- * @param the Mat to be processed
- * @return -
+ * PARAMETERS:
+ * 			- src: Mat to perform gamma correction
+ * 
+ * RETURN: --
  */
 void gammaCorrection(Mat& src)
 {
