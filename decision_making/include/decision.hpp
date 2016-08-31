@@ -44,6 +44,7 @@ class Decision_making
             
             float x = 0.0;
             float y = 0.0;
+            float z = 0.0;
             float width = 0.0;
             float height = 0.0;
         };

@@ -86,11 +86,6 @@ rostopic echo /fusion/results
   ```
   * check that the path is included by: ```echo $ROS_PACKAGE_PATH```
 * Copy this project in ```~/catkin_ws/src```
-* Install Alglib (clustering for depth estimation), in case the stdafx.h file needed is not in /usr/include/
-check where your system has  stored it and add the directory in the CMAkeList.txt link_directories()
-  ```
-    sudo apt-get install libalglib-dev
-  ```
 
 * Run in terminal: 
 
