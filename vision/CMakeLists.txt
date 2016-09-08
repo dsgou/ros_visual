@@ -12,7 +12,6 @@ catkin_package(INCLUDE_DIRS include
 include_directories(
   include
   /usr/include/
-  /usr/include/libalglib/
   ${OpenCV_INCLUDE_DIRS}
 )
 
@@ -30,7 +29,6 @@ add_library(vision SHARED ${SOURCES})
 target_link_libraries(${PROJECT_NAME} 
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
-  alglib
 )
 
 install(DIRECTORY include/${PROJECT_NAME}/

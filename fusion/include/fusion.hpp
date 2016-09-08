@@ -26,7 +26,6 @@
 
 using namespace std;
 using namespace cv;
-using namespace alglib;
 
 #define DEPTH_MAX 6000.0  /**< Default maximum distance. Only use this for initialization. */
 #define DEPTH_MIN 0.0  /**< Default minimum distance. Only use this for initialization. */

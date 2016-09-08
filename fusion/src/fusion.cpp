@@ -59,6 +59,16 @@ Fusion_processing::~Fusion_processing()
 	
 }
 
+/* Callback function to handle ROS messages, synchronously receives 3 messages
+ * 
+ * PARAMETERS:
+ *	    - chroma_msg 	 : ROS message that contains the RGB image and its metadata
+ *	    - chroma_dif_msg : ROS message that contains the  differentiated RGB image and its metadata
+ *	    - depth_msg		 : ROS message that contains the depth image and its metadata
+ * 
+ * 
+ * RETURN --
+ */
 void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, const sensor_msgs::ImageConstPtr& chroma_dif_msg, const sensor_msgs::ImageConstPtr& depth_msg)
 {
 	Mat fusion;
@@ -75,16 +85,16 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 	cv_ptr_dif 	 = cv_bridge::toCvCopy(chroma_dif_msg, sensor_msgs::image_encodings::MONO8);	
 	cv_ptr_depth = cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_32FC1);
 	
-	chroma 		= (cv_ptr->image).clone();
-	chroma_dif 	= (cv_ptr_dif->image).clone();
-	depth 		= (cv_ptr_depth->image).clone();
+	chroma 		 = (cv_ptr->image).clone();
+	chroma_dif 	 = (cv_ptr_dif->image).clone();
+	depth 		 = (cv_ptr_depth->image).clone();
 	
 	//Fuse the gray and depth images
 	fusion = chroma_dif;
 	cv::threshold(fusion, fusion, 100, 255, THRESH_BINARY);
 	
 	//Detect moving blobs
-	detectBlobs(fusion, fusion_rects, 15);
+	detectBlobs(fusion, fusion_rects, 15, true);
 	
 	//Track blobs
 	track(fusion_rects, people);
@@ -188,9 +198,12 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 		
 		
 		ros::Time time = cv_ptr->header.stamp;
+		
+		//Write csv file
 		if(write_csv)
 			writeCSV(people, session_path, time);
 
+		//Publish results
 		publishResults(people, time);
 
 		
@@ -198,6 +211,16 @@ void Fusion_processing::callback(const sensor_msgs::ImageConstPtr& chroma_msg, c
 	
 }
 
+/* Function that writes creates a csv file and appends values to it
+ * 
+ * PARAMETERS:
+ *	    - collection: object that contains the bounded boxes detected
+ *	    - path		: the root path of the csv file
+ *	    - time		: ROS object that has the timestamp the frame was created
+ * 
+ * 
+ * RETURN --
+ */
 void Fusion_processing::writeCSV(People& collection, string path, ros::Time time)
 {		
 	if (!collection.tracked_boxes.empty())
@@ -228,6 +251,16 @@ void Fusion_processing::writeCSV(People& collection, string path, ros::Time time
 	}
 }
 
+/* Creates a ROS message, populates it with the bounded boxes detected and their
+ * metadata and publishes it  
+ * 
+ * PARAMETERS:
+ *	    - collection: object that contains the bounded boxes detected
+ *	    - time		: ROS object that has the timestamp the frame was created
+ * 
+ * 
+ * RETURN --
+ */
 void Fusion_processing::publishResults(People& collection, ros::Time time){
 	if (!collection.tracked_boxes.empty())
 	{

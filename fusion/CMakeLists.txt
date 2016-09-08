@@ -40,7 +40,6 @@ aux_source_directory(src/ SRC_LIST)
 include_directories(
   include
   /usr/include/
-  /usr/include/libalglib/
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}

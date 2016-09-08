@@ -16,7 +16,7 @@ Decision_making::Decision_making()
 	local_nh.param("create_directory", create_dir      , false);
 	local_nh.param("write_csv"       , write_csv       , false);
 
-    fusion_sub = nh_.subscribe(results_topic, 1, &Decision_making::callback, this);
+    fusion_sub        = nh_.subscribe(results_topic, 1, &Decision_making::callback, this);
     results_publisher = local_nh.advertise<decision_making::Event>(events_topic, 1000);
 
     if(create_dir)
@@ -34,12 +34,21 @@ Decision_making::Decision_making()
 	
 }
 
+/* Callback function to handle ROS image messages
+ * 
+ * PARAMETERS:
+ * 			- msg : ROS message that contains the bounded boxes detected 
+ *                  in the Fusion node and their metadata
+ * 
+ * RETURN: --
+ */
 void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
 {
-    decision_making::Event event_msg;
-    event_msg.header.stamp = msg->header.stamp;
+    decision_making::Event      event_msg;
+    event_msg.header.stamp    = msg->header.stamp;
     event_msg.header.frame_id = camera_frame;
-    event_msg.event = -1;
+    event_msg.type            = -1;
+    event_msg.description     = "";
     
     for(vector<bool>::iterator it = inserted.begin(); it < inserted.end(); it++)
         *it = false;
@@ -85,12 +94,14 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
         vector<float> x_pos;
         vector<float> y_pos;
         vector<float> top_pos;
-        for(Decision_making::Box box: *it)
+        vector<Decision_making::Box> boxes = *it;
+        for(Decision_making::Box box: boxes)
         {
             x_pos.push_back(box.pos.x);
             y_pos.push_back(box.pos.y);
             top_pos.push_back(box.pos.top);
         }
+        
         float x_median = median(x_pos);
         float y_median = median(y_pos);
         float top_median = median(top_pos);
@@ -100,6 +111,7 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
             Decision_making::Position pos;
             pos.x = x_median;
             pos.y = y_median;
+            pos.z = boxes.front().pos.z;
             pos.top = top_median;
             vector<Decision_making::Position> temp;
             temp.push_back(pos);
@@ -110,10 +122,10 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
             
             Decision_making::Position pos;
             pos = positions.at(i).front();
-            float dist = sqrt(pow(x_median - pos.x, 2) + pow(y_median - pos.y, 2));
+            float dist    = sqrt(pow(x_median - pos.x, 2) + pow(y_median - pos.y, 2));
             float top_dif = abs(top_median - pos.top);
-            
-            if(top_dif > 3 && top_median > 200 && top_median < 900)
+            float z_dif   = abs(pos.z - boxes.front().pos.z);
+            if(top_dif > 6)
             {
                 if(standUp_time.toSec() == 0)
                     standUp_time = event_msg.header.stamp;
@@ -125,26 +137,30 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
                     float duration = event_msg.header.stamp.toSec() - standUp_time.toSec();
                     if((duration > 0.4) && (duration < 2.0))
                     {
-                        ros::Time time = event_msg.header.stamp;
+                        ros::Time time             = event_msg.header.stamp + ros::Duration(duration/2);
+                        ros::Duration ros_duration = ros::Duration(duration) + ros::Duration(duration/2);
+                        event_msg.header.stamp     = time;
+                        event_msg.type             = 3;
+                        event_msg.description      = "stand up";
+                        event_msg.duration         = ros_duration;
+                        results_publisher.publish(event_msg);
+                        cout<<"as"<<endl;
+                        event_msg.header.stamp = msg->header.stamp;
+                        
                         ofstream storage(session_path + "/decision_making.csv" ,ios::out | ios::app );
                         storage
-                            <<standUp_time<<"\t"
+                            <<time<<"\t"
                             <<i<<"\t"
-                            <<"2\t"<<
+                            <<"3\t"
+                            <<ros_duration<<
                         endl;
-                        storage
-                            <<event_msg.header.stamp<<"\t"
-                            <<i<<"\t"
-                            <<"3\t"<<
-                        endl;
-                        event_msg.event = 3;
-                        results_publisher.publish(event_msg);
                     }
                 }
                 standUp_time = ros::Time(0);
             }
             pos.x = x_median;
             pos.y = y_median;
+            pos.z = boxes.front().pos.z;
             pos.top = top_median;
             positions.at(i).insert(positions.at(i).begin(), pos);
             
@@ -169,17 +185,24 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
                     float prev_dist = temp_boxes.at(1).pos.acc_distance;
                     dist += prev_dist;
                     temp_boxes.front().pos.acc_distance = dist;
-                    if(dist > 4000 && prev_dist < 4000 && write_csv)
+                    if((int(dist)%4000 < 500) && (int(prev_dist)%4000 > 3500 && write_csv))
                     {
-                        ros::Time time = event_msg.header.stamp;
+                        ros::Time time         = event_msg.header.stamp + ros::Duration(0.25);
+                        event_msg.header.stamp = time;
+                        event_msg.type         = 4;
+                        event_msg.description  = "walked 4 meters";
+                        event_msg.duration     = ros::Duration(0);
+                        results_publisher.publish(event_msg);
+                        event_msg.header.stamp = msg->header.stamp;
+                        
                         ofstream storage(session_path + "/decision_making.csv" ,ios::out | ios::app );
                         storage
                             <<time<<"\t"
                             <<i<<"\t"
-                            <<"4\t"<<
+                            <<"4\t"
+                            <<ros::Duration(0)<<
                         endl;
-                        event_msg.event = 4;
-                        results_publisher.publish(event_msg);
+                        
                     }
                 }
                 else
@@ -238,6 +261,15 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
     //~ cout<<endl;
 }
 
+/* Creates a directory using local time and optionally initializes a csv file
+ * 
+ * PARAMETERS:
+ * 			- path_      : path to create directory
+ * 			- create_csv : flag to create csv file
+ * 			- fields     : the fields to use in the csv file
+ * 
+ * RETURN: --
+ */
 string Decision_making::create_directory(string path_, bool create_csv, vector<string> fields)
 {
 	
@@ -265,6 +297,13 @@ string Decision_making::create_directory(string path_, bool create_csv, vector<s
     
 }
 
+/* Gets local time
+ * 
+ * PARAMETERS:
+ * 			-format : the format of the time that will be returned
+ * 
+ * RETURN: --
+ */
 string Decision_making::getTime(string format)
 {
 	
@@ -275,6 +314,13 @@ string Decision_making::getTime(string format)
 	return buf;
 }
 
+/* Finds the median value of a vector
+ * 
+ * PARAMETERS:
+ * 			-values : vector containing the values we want to process
+ * 
+ * RETURN: --
+ */
 float Decision_making::median(vector<float> values)
 {
     float median = 0.0;
