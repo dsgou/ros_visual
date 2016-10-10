@@ -36,8 +36,9 @@ class Fusion_processing
 			
 		Fusion_processing();		  
 		~Fusion_processing();
-		
-		void callback(const sensor_msgs::Image::ConstPtr& chroma_msg, const sensor_msgs::Image::ConstPtr& chroma_dif_msg, const sensor_msgs::Image::ConstPtr& depth_msg);
+				
+		void chromaCb(const sensor_msgs::ImageConstPtr& msg);
+		void depthCb(const sensor_msgs::ImageConstPtr& msg);
 
 		void writeCSV(People& collection, string path, ros::Time time);
 		void publishResults(People& collection, ros::Time time);
@@ -49,11 +50,15 @@ class Fusion_processing
 		ros::NodeHandle nh_;
 		ros::Publisher results_publisher;
 		image_transport::ImageTransport it_;
-		
-		typedef image_transport::SubscriberFilter ImageSubscriber;
-		typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, sensor_msgs::Image> MySyncPolicy;
-		message_filters::Synchronizer< MySyncPolicy > *sync;
+		image_transport::Subscriber image_sub;
+		image_transport::Subscriber depth_sub;
+
   	
+		Mat depth;
+		Mat back_Mat;
+		vector<Mat> depth_storage;
+		vector< Rect_<int> > depth_rects;
+		
 		string path_;
 		string session_path;
 		string image_topic;
@@ -63,9 +68,6 @@ class Fusion_processing
         string csv_fields;
 		string camera_frame;
 		
-		vector<Mat> depth_storage;
-		vector< Rect_<int> > depth_rects;
-		
 		People people;
 		
 		bool playback_topics;
@@ -73,6 +75,7 @@ class Fusion_processing
 		bool create_directory;
 		bool write_csv;
 		bool has_image = false;
+		bool depth_available = false;
 		
 		int Hfield 		  = 58;
 		int Vfield 		  = 45;
@@ -86,7 +89,7 @@ class Fusion_processing
 		int range 		  = 2; //in pixels
 		int verRange 	  = 7; //in pixels
 		int recR 		  = 2;
-		
+		int counter = 0;
 		long curTime ;
 		float backFactor = 0.40;
 		
@@ -100,9 +103,6 @@ class Fusion_processing
 		double recThreshold  = 0.3;
 		
 		
-		
-		
-		Mat back_Mat;
 	
 };
 

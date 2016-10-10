@@ -18,13 +18,13 @@ Depth_processing::Depth_processing()
     {
 	ROS_INFO_STREAM_NAMED("Depth_processing","Subscribing at compressed topics \n"); 
 			
-	depth_sub = it_.subscribe(depth_topic, 1, 
+	depth_sub = it_.subscribe(depth_topic, 10, 
 	   &Depth_processing::depthCb, this, image_transport::TransportHints("compressedDepth"));
     }
     else	  
-	depth_sub = it_.subscribe(depth_topic, 1, &Depth_processing::depthCb, this);
+	depth_sub = it_.subscribe(depth_topic, 10, &Depth_processing::depthCb, this);
 	
-    depth_pub = it_.advertise(depth_out_image_topic, 1);
+    depth_pub = it_.advertise(depth_out_image_topic, 100);
 }
 
 Depth_processing::~Depth_processing()
@@ -172,6 +172,7 @@ detectBlobs(back_dif, back_dif_rects, 3);
     
     //Converting chroma values to meters
     grayToDepth(cur_depth, cur_depth, max_depth);
+    
     
     //Publish corrected depth image
     cv_ptr_depth->image = cur_depth;
