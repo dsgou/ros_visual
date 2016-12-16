@@ -504,7 +504,7 @@ void gammaCorrection(Mat& src)
 	for( int i = 0; i < 256; i++ )
 		ptr[i] = (int)( pow( (double) i / 255.0, inverse_gamma ) * 255.0 );
 	
-	LUT( here, lut_matrix, here );
+	LUT( src, lut_matrix, src );
 }
 
 
