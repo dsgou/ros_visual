@@ -174,8 +174,9 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 	//~ cout<<endl;
 	
 	
-	ros::Time time = cv_ptr_dif->header.stamp;
-	
+	//~ ros::Time time = cv_ptr_dif->header.stamp;
+	ros::Time time = ros::Time::now();
+
 	//Write csv file
 	if(write_csv)
 		writeCSV(people, session_path, time);
@@ -235,9 +236,7 @@ void Fusion_processing::writeCSV(People& collection, string path, ros::Time time
 	}
 	else
 	{
-		storage
-			<<time<<"\t"<<
-		endl;
+		storage<<time<<endl;
 	}
 	storage.close();
 }

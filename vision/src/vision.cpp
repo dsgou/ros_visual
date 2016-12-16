@@ -504,11 +504,6 @@ void gammaCorrection(Mat& src)
 	for( int i = 0; i < 256; i++ )
 		ptr[i] = (int)( pow( (double) i / 255.0, inverse_gamma ) * 255.0 );
 	
-	Mat here(1, 256, CV_8UC1 );
-	ptr = here.ptr();
-	for( int i = 0; i < 256; i++ )
-		ptr[i] = 5;
-	
 	LUT( here, lut_matrix, here );
 }
 

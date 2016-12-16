@@ -1,4 +1,6 @@
 **/~*
-*.swp
+**.*.bag
+**/*.csv
+**/*.swp
 **/sessions/
 **/*.zip

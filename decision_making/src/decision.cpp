@@ -144,7 +144,6 @@ void Decision_making::callback(const fusion::FusionMsg::ConstPtr& msg)
                         event_msg.description      = "stand up";
                         event_msg.duration         = ros_duration;
                         results_publisher.publish(event_msg);
-                        cout<<"as"<<endl;
                         event_msg.header.stamp = msg->header.stamp;
                         
                         ofstream storage(session_path + "/decision_making.csv" ,ios::out | ios::app );
