@@ -257,92 +257,6 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int rank, float 
 	}
 }
 
-/* Calculates and stores the coordinates(x, y, z) in meters of a rectangle
- * in respect to the center of the camera.
- * 
- * PARAMETERS:
- * 			- rect   : rectangle to be processed
- * 			- pos    : object to save the measurements produced
- * 			- width  : image width
- * 			- height : image height
- * 			- Hfield : camera horizontal field of view in degrees
- * 			- Vfield : camera vertical field of view in degrees
- * 
- * RETURN: --
- * 
- */
-void calculatePosition(Rect& rect, Position& pos, int width, int height, int Hfield, int Vfield)
-{
-	
-	float hor_x 	= 0.0;
-	float hor_y 	= 0.0;
-	float ver_x 	= 0.0;
-	float ver_y 	= 0.0;
-	float hor_focal = 0.0;
-	float ver_focal = 0.0;
-	float distance  = 0.0;
-	float top 		= 0.0;
-	float bottom 	= 0.0;
-	float depth 	= pos.z;
-	
-	if (depth != 0.0)
-	{
-		
-		//Find the focal length 
-		hor_focal = height / (2 * tan((Vfield/2) * M_PI / 180.0) );
-		ver_focal = width / (2 * tan((Hfield/2) * M_PI / 180.0) );
-		
-		//Transform the pixel x, y in respect to 
-		//the camera center
-		ver_x = rect.x + rect.width/2;
-		if(ver_x > width/2)
-			ver_x = (ver_x - width/2);
-		else
-			ver_x = (-1)*(width/2 - ver_x);
-		
-		ver_y = rect.y + rect.height/2;
-		if(ver_y > height/2)
-			ver_y = (-1)*(ver_y - height/2);
-		else
-			ver_y = (height/2 - ver_y);
-		
-		//Calculate the real world coordinates of the box center
-		hor_y = depth * ver_y / hor_focal;
-		hor_x = depth * ver_x / ver_focal;
-		
-		if(pos.x != 0)
-		{
-			distance = abs(pos.x - hor_x);
-			pos.distance = distance;
-		}
-		pos.x = hor_x;
-		pos.y = hor_y;
-		
-		
-		
-		
-		ver_y = rect.y;
-		if(ver_y > height/2)
-			ver_y = (-1)*(ver_y - height/2);
-		else
-			ver_y = (height/2 - ver_y);
-		top = depth * ver_y / hor_focal;
-		
-		
-		ver_y = rect.y + rect.height;
-		if(ver_y > height/2)
-			ver_y = (-1)*(ver_y - height/2);
-		else
-			ver_y = (height/2 - ver_y);
-			
-		bottom     = depth * ver_y / hor_focal;
-		pos.top    = abs(top);
-		pos.height = abs(top - bottom);
-	
-	}
-	
-}
-
 /* Estimates the foreground by combining static images, works for
  * images that contain edge information
  * 
@@ -378,7 +292,7 @@ void estimateForeground(Mat& cur_Mat, Mat& back_Mat, Mat& dst_Mat)
 }
 	
 /* Estimates the background by combining static images recursively, works for
- * images the contain edge information. It recursively performs bitwise_and 
+ * images that contain edge information. It recursively performs bitwise_and 
  * to remove noise and keep only the motionless part of the image and bitwise_or
  * at the produced images to fill parts of the images that were blocked from moving
  * objects (e.g. people) 
@@ -503,13 +417,8 @@ void gammaCorrection(Mat& src)
 	uchar * ptr = lut_matrix.ptr();
 	for( int i = 0; i < 256; i++ )
 		ptr[i] = (int)( pow( (double) i / 255.0, inverse_gamma ) * 255.0 );
-	
-	Mat here(1, 256, CV_8UC1 );
-	ptr = here.ptr();
-	for( int i = 0; i < 256; i++ )
-		ptr[i] = 5;
-	
-	LUT( here, lut_matrix, here );
+		
+	LUT( src, lut_matrix, src );
 }
 
 

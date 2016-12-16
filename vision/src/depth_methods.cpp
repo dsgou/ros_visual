@@ -67,6 +67,92 @@ void depthToGray(Mat& src, Mat& dst, float min_depth, float max_depth)
 	
 }
 
+/* Calculates and stores the coordinates(x, y, z) in meters of a rectangle
+ * in respect to the center of the camera.
+ * 
+ * PARAMETERS:
+ * 			- rect   : rectangle to be processed
+ * 			- pos    : object to save the measurements produced
+ * 			- width  : image width
+ * 			- height : image height
+ * 			- Hfield : camera horizontal field of view in degrees
+ * 			- Vfield : camera vertical field of view in degrees
+ * 
+ * RETURN: --
+ * 
+ */
+void calculatePosition(Rect& rect, Position& pos, int width, int height, int Hfield, int Vfield)
+{
+	
+	float hor_x 	= 0.0;
+	float hor_y 	= 0.0;
+	float ver_x 	= 0.0;
+	float ver_y 	= 0.0;
+	float hor_focal = 0.0;
+	float ver_focal = 0.0;
+	float distance  = 0.0;
+	float top 		= 0.0;
+	float bottom 	= 0.0;
+	float depth 	= pos.z;
+	
+	if (depth != 0.0)
+	{
+		
+		//Find the focal length 
+		hor_focal = height / (2 * tan((Vfield/2) * M_PI / 180.0) );
+		ver_focal = width / (2 * tan((Hfield/2) * M_PI / 180.0) );
+		
+		//Transform the pixel x, y in respect to 
+		//the camera center
+		ver_x = rect.x + rect.width/2;
+		if(ver_x > width/2)
+			ver_x = (ver_x - width/2);
+		else
+			ver_x = (-1)*(width/2 - ver_x);
+		
+		ver_y = rect.y + rect.height/2;
+		if(ver_y > height/2)
+			ver_y = (-1)*(ver_y - height/2);
+		else
+			ver_y = (height/2 - ver_y);
+		
+		//Calculate the real world coordinates of the box center
+		hor_y = depth * ver_y / hor_focal;
+		hor_x = depth * ver_x / ver_focal;
+		
+		if(pos.x != 0)
+		{
+			distance = abs(pos.x - hor_x);
+			pos.distance = distance;
+		}
+		pos.x = hor_x;
+		pos.y = hor_y;
+		
+		
+		
+		
+		ver_y = rect.y;
+		if(ver_y > height/2)
+			ver_y = (-1)*(ver_y - height/2);
+		else
+			ver_y = (height/2 - ver_y);
+		top = depth * ver_y / hor_focal;
+		
+		
+		ver_y = rect.y + rect.height;
+		if(ver_y > height/2)
+			ver_y = (-1)*(ver_y - height/2);
+		else
+			ver_y = (height/2 - ver_y);
+			
+		bottom     = depth * ver_y / hor_focal;
+		pos.top    = abs(top);
+		pos.height = abs(top - bottom);
+	
+	}
+	
+}
+
 /* Calculates the depth of the closest object in the specified Mat by using clustering
  * 
  * PARAMETERS:
