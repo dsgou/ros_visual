@@ -9,6 +9,7 @@
 #include <limits>
 #include <exception>
 #include <opencv2/core/core.hpp>
+#include <opencv2/photo/photo.hpp>
 #include <opencv2/video/background_segm.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -59,7 +60,7 @@ using namespace cv;
 	void estimateBackground(Mat& src, Mat& dst, vector<Mat>& storage, int recursion, float ratio = 0.04, int index = 0);
 	void estimateForeground(Mat& src1, Mat& src2, Mat& dst);
 	
-	void frameDif(Mat& src1, Mat& src2, Mat& dst, float threshold);
+	void frameDif(Mat& src1, Mat& src2, Mat& dst, float thresh);
 		
 	//helper functions
 	int threshold(Mat& src, Mat& dst, int thresh);

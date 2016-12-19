@@ -19,8 +19,6 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 	int rows 	 		   = src.rows;
 	int channels 		   = src.channels();
 	int size 			   = cols*rows*channels;
-	float detection_factor = 0.1; //threshold for the 1st fusing phase
-	float merge_factor 	   = 0.1; //threshold for the 2nd fusing phase
 	
 	//Starting from the 1st non-zero pixel it starts forming rectangles (range x range)
 	//and fuses them if their intersection is above a certain threshold.
@@ -49,90 +47,74 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 					{
 						Rect_<int> rect   = colour_areas[k];
 						Rect all 		  = removal | rect;
-						int temp 		  = removal.y;
-						removal.y 		  = rect.y;
 						Rect intersection = removal & rect;
-						removal.y 		  = temp;
 						int threshold 	  = intersection.area();
 						
 						if(threshold < 1)
 							continue;
-							
-						if(removal.area() < rect.area())
+						else if(threshold > 0)
 						{
-							if(threshold > detection_factor*removal.area())
-							{
-								flag = true;
-								colour_areas[k] = all;
-							}
+							flag = true;
+							colour_areas[k] = all;
+							break;
 						}
-						else
-						{
-							if(threshold > detection_factor*rect.area())
-							{
-								flag = true;
-								colour_areas[k] = all;
-							}
-						}
+					
 					}
 					if(!flag)
 						colour_areas.push_back(removal);
 					else
 						flag = false;
-						
-					//In this phase we loop through all the produced rectangles and again try to merge those whose
-					//intersection is above a certain threshold	
-					int end = colour_areas.size();
-					for(int a = 0; a < end; a++) 
-					{
-						for(int b = a + 1; b < end; b++) 
-						{	
-							Rect_<int> removal = colour_areas[a];
-							Rect_<int> rect    = colour_areas[b];
-							
-							Rect all 		  = removal | rect;
-							int temp 		  = removal.y;
-							removal.y 		  = rect.y;
-							Rect intersection = removal & rect;
-							removal.y 		  = temp;
-							int threshold 	  = intersection.area();
-							if(threshold < 1)
-								continue;
-								
-							if(removal.area() < rect.area())
-							{
-								if(threshold > merge_factor*removal.area())
-								{
-									colour_areas[a] = all;
-									colour_areas[b] = colour_areas.back();
-									colour_areas.pop_back();
-									b = a + 1;
-									end--;
-								}
-							}
-							else
-							{
-								if(threshold > merge_factor*rect.area())
-								{
-									colour_areas[a] = all;
-									colour_areas[b] = colour_areas.back();
-									colour_areas.pop_back();
-									b = a + 1;
-									end--;
-								}
-							}
-							
-						}
-					}
-					
-				
 				}
 				else
 					colour_areas.push_back(removal);
 			}
 		}
 	}
+	//In this phase we loop through all the produced rectangles and again try to merge those whose
+	//intersection is above a certain threshold	
 	int end = colour_areas.size();
+	for(int a = 0; a < end; a++) 
+	{
+		for(int b = a + 1; b < end; b++) 
+		{	
+			Rect_<int> removal = colour_areas[a];
+			Rect_<int> rect    = colour_areas[b];
+			Rect all 		   = removal | rect;
+			
+			int y_distance;
+			if (removal.y < rect.y)
+				y_distance = abs(removal.y + removal.height - rect.y);
+			else
+				y_distance = abs(removal.y - rect.y + rect.height);
+				
+			Rect intersection;
+			if(y_distance < rows/3)
+			{
+				int temp 	 = removal.y;
+				removal.y 	 = rect.y;
+				intersection = removal & rect;
+				removal.y 	 = temp;
+			}
+			else
+				intersection = removal & rect;
+				
+			int threshold 	 = intersection.area();
+			if(threshold < 1)
+				continue;
+			else if(threshold > 0)
+			{
+				colour_areas[a] = all;
+				colour_areas[b] = colour_areas.back();
+				colour_areas.pop_back();
+				a = -1;
+				end--;
+				break;
+			}
+			
+		}
+	}
+					
+	end = colour_areas.size();
 	
 	//Filter out erroneous areas (dimensions < 0) that sometimes occur
 	for(int k = 0; k < end; k++)
@@ -141,20 +123,21 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 		float y 	 = colour_areas[k].y;
 		float width  = colour_areas[k].width;
 		float height = colour_areas[k].height;
-		if((x < 0) || (y < 0) || (height < 0) || (width < 0))
+		float area = colour_areas[k].area();
+		if((area <= pow(range,2)) || (x < 0) || (y < 0) || (height < 0) || (width < 0))
 		{
 			colour_areas[k] = colour_areas.back();
 			colour_areas.pop_back();
-			k   = k < 0? 0: k--;
-			end = end < 0? 0: end--;
+			k--;
+			end--;
 				
 		}
 	}
 	
-	end = colour_areas.size();
 	//Filter out areas whose ratio cannot belong to a human
 	if(detect_people)
 	{
+		end = colour_areas.size();
 		for(int k = 0; k < end; k++)
 		{
 			float width  = colour_areas[k].width;
@@ -440,52 +423,12 @@ void estimateBackground(Mat& src, Mat& dst, vector<Mat>& storage, int recursion,
  * 
  * RETURN: --
  */
-void frameDif(Mat& src1, Mat& src2, Mat& dst, float threshold)
+void frameDif(Mat& src1, Mat& src2, Mat& dst, float thresh)
 {
-	uchar *src;
-	uchar *temp;
-	uchar *dest;
-	Mat temp_Mat;
-	
-	int cols 	 = src1.cols;
-	int rows 	 = src1.rows;
-	int channels = src1.channels();
-	int size	 = cols*rows*channels;
-	int motionCounter = 0;
-	
 	// Absolute dif between our current mat and the previous one 
-	absdiff(src1, src2, temp_Mat);
-	dst = src1.clone();
+	absdiff(src1, src2, dst);
+	threshold(dst, dst, thresh, 255, 0);
 	
-	for(int y = 0; y < 1; y++)
-	{
-		src  = src1.ptr<uchar>(y);
-		temp = temp_Mat.ptr<uchar>(y);
-		dest = dst.ptr<uchar>(y);
-		for(int x = 0; x < size; x = x + channels)
-		{ 
-			float all = 0.0;
-			float color[channels];
-			for (int ch = 0; ch < channels; ch++)
-				color[ch] = (float)temp[x + ch];
-				
-			for (int i = 0; i < channels; i++)
-				all += color[i];
-			all /= channels;
-			
-			if(all > threshold)
-			{
-				for (int ch = 0; ch < channels; ch++)
-					dest[x + ch] = src[x + ch]; 
-				motionCounter++;
-			}
-			else
-			{
-				for (int ch = 0; ch < channels; ch++)
-					dest[x + ch] = 0;
-			}
-		}
-	}
 }
 
 /* Image gamma correction 
@@ -497,7 +440,7 @@ void frameDif(Mat& src1, Mat& src2, Mat& dst, float threshold)
  */
 void gammaCorrection(Mat& src)
 {
-	double inverse_gamma = 1.0 / 2.2;
+	double inverse_gamma = 1.0 / 2.0;
 	
 	Mat lut_matrix(1, 256, CV_8UC1 );
 	uchar * ptr = lut_matrix.ptr();
