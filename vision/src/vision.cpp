@@ -176,41 +176,68 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
  * 
  * RETURN --
  */
-void track(vector< Rect_<int> >& cur_boxes, People& collection, int rank, float threshold)
+void track(vector< Rect_<int> >& cur_boxes, People& collection, int rank)
 {
 	bool exists = false;
 	float step  = 1.2;
-	
+	vector<float> distances;
 	if(!cur_boxes.empty())
 	{	
+		
 		for(int a = 0; a < cur_boxes.size(); a++) 
 		{
 			exists = false;
 			for(int b = 0; b < collection.tracked_boxes.size(); b++) 
 			{
 				Rect intersection = cur_boxes[a] & collection.tracked_boxes[b];
-				int area = intersection.area();	
-				if(cur_boxes[a].area() < collection.tracked_boxes[b].area())
+				int threshold = intersection.area();	
+				if(threshold > 0)
 				{
-					if(area > threshold*cur_boxes[a].area())
+					float dif = cur_boxes[a].area()/collection.tracked_boxes[b].area();
+					if(cur_boxes[a].area() > collection.tracked_boxes[b].area())
 					{
-						collection.tracked_boxes[b] = cur_boxes[a];
-						if(collection.tracked_rankings[b] <= 10)
-							collection.tracked_rankings[b] = collection.tracked_rankings[b] + step;
-						exists = true;	
-						break;	
+						if(collection.tracked_boxes[b].area() > threshold)
+						{	
+							collection.tracked_boxes[b] = cur_boxes[a];
+							if(dif < 10)
+							{
+								collection.tracked_boxes[b].width = (collection.tracked_boxes[b].width + cur_boxes[a].width)/2;
+								collection.tracked_boxes[b].height = (collection.tracked_boxes[b].height + cur_boxes[a].height)/2;
+							}
+						}
+						else
+						{
+							collection.tracked_boxes[b] = cur_boxes[a];
+						}
 					}
-				}
-				else
-				{
-					if(area > threshold*collection.tracked_boxes[b].area())
+					else
 					{
-						collection.tracked_boxes[b] = cur_boxes[a];
-						if(collection.tracked_rankings[b] <= 10)
-							collection.tracked_rankings[b] = collection.tracked_rankings[b] + step;
-						exists = true;	
-						break;	
+						float dif = collection.tracked_boxes[b].area()/cur_boxes[a].area();
+						if((cur_boxes[a].area()) > threshold)
+						{	
+							if(dif < 2)
+							{
+								collection.tracked_boxes[b].x += (cur_boxes[a].x - collection.tracked_boxes[b].x)/10;
+								collection.tracked_boxes[b].y += (cur_boxes[a].y - collection.tracked_boxes[b].y)/10;
+								collection.tracked_boxes[b].width += (cur_boxes[a].width - collection.tracked_boxes[b].width)/10;
+								collection.tracked_boxes[b].height += (cur_boxes[a].height - collection.tracked_boxes[b].height)/10;
+							}
+							//~ else
+							//~ {
+								//~ collection.tracked_boxes[b].width = (collection.tracked_boxes[b].width + cur_boxes[a].width)/2;
+								//~ collection.tracked_boxes[b].height = (collection.tracked_boxes[b].height + cur_boxes[a].height)/2;
+							//~ }
+						}
+						else
+						{
+							collection.tracked_boxes[b] = collection.tracked_boxes[b] | cur_boxes[a];
+						}
 					}
+						
+					if(collection.tracked_rankings[b] <= 30)
+						collection.tracked_rankings[b] = collection.tracked_rankings[b] + step;
+					exists = true;
+					break;
 				}
 				
 			}

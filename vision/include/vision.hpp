@@ -39,7 +39,7 @@ using namespace cv;
 		
 	//Detection and tracking of blobs
 	void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool detect_people);
-	void track(vector< Rect_<int> >& current, People& collection, int rank = 3, float threshold = 0.2);
+	void track(vector< Rect_<int> >& current, People& collection, int rank = 3);
 	
 	//Depth estimation functions
 	double calculateDepth(Mat& src, Rect_<int> personRect);
