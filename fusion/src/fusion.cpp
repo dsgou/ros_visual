@@ -59,14 +59,12 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 	Mat fusion;
 	vector< Rect_<int> > fusion_rects;
 	cv_bridge::CvImagePtr cv_ptr_dif;
-	
 	cv_ptr_dif 	 = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::MONO8);
 	
 	fusion 	 = (cv_ptr_dif->image).clone();
-	cv::threshold(fusion, fusion, 100, 255, THRESH_BINARY);
 	
 	//Detect moving blobs
-	detectBlobs(fusion, fusion_rects, 15, true);
+	detectBlobs(fusion, fusion_rects, 15, false);
 	
 	//Track blobs
 	track(fusion_rects, people);
@@ -78,6 +76,7 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 	int rank  = -1;
 	int index = -1;
 	int end	  = people.tracked_rankings.size();
+	
 	for(int i = 0; i < end; i++)
 	{
 		people.tracked_pos.push_back(pos);
@@ -85,7 +84,6 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 		{
 			//~ cout<<people.tracked_boxes[i].x<<" " <<people.tracked_boxes[i].y<<" "<<people.tracked_boxes[i].width<<" "<<people.tracked_boxes[i].height<<endl;
 			people.tracked_pos.push_back(pos);
-			rectangle(fusion, people.tracked_boxes[i], 255, 1);
 			//~ rectangle(chroma, people.tracked_boxes[i], 0, 1);
 			if(rank < people.tracked_rankings[i])
 			{
@@ -102,6 +100,20 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 			people.tracked_rankings.pop_back();
 			i--;
 			end--;
+		}
+	}
+	
+	cout<<"start "<<end<<endl;
+	for(int i = 0; i < end; i++)
+	{
+		if (index == i)
+		{
+			rectangle(fusion, people.tracked_boxes[i], 255, 1);
+			cout<<people.tracked_boxes[i].x<<endl;
+			cout<<people.tracked_boxes[i].y<<endl;
+			cout<<people.tracked_boxes[i].width<<endl;
+			cout<<people.tracked_boxes[i].height<<endl;
+			cout<<people.tracked_rankings[i]<<endl;
 		}
 	}
 	
@@ -158,13 +170,15 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 		
 		//~ depth_rect.copyTo(depth_filtered(people.tracked_boxes[index]));
 		
-		//~ imshow("fusion", fusion);
-		//~ moveWindow("fusion", 0, 0);
+		//~ for(Rect rect: fusion_rects)
+			//~ rectangle(fusion, rect, 255, 1);
+		imshow("fusion", fusion);
+		moveWindow("fusion", 0, 0);
 		//~ imshow("depth_filt", depth_filtered);
 		//~ moveWindow("depth_filt", 645, 550);
 		//~ imshow("chroma", chroma);
 		//~ moveWindow("chroma", 0, 550);
-		//~ waitKey(1);
+		waitKey(1);
 	}
 	//~ cout<<"X:  "<<people.tracked_pos[index].x<<endl;
 	//~ cout<<"Y:  "<<people.tracked_pos[index].y<<endl;
@@ -183,8 +197,6 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 
 	//Publish results
 	publishResults(people, time);
-
-	
 }
 
 void Fusion_processing::depthCb(const sensor_msgs::ImageConstPtr& msg)
