@@ -62,11 +62,18 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 
 	cur_rgb = (cv_ptr->image).clone();
 	
+	
+	//~ equalizeHist( cur_rgb, cur_rgb );
+	//~ cur_rgb.convertTo(cur_rgb, -1, 1.2, 0);
+	Ptr<CLAHE> clahe = createCLAHE();
+	clahe->setClipLimit(1.5);
+	clahe->setTilesGridSize(Size(10, 10));
+	gammaCorrection(cur_rgb);
+	clahe->apply(cur_rgb,cur_rgb);
+	
 	// contrast fix
-	cur_rgb.convertTo(cur_rgb, -1, 2, 0);
 	
 	// gamma correction
-	gammaCorrection(cur_rgb);
 	
 
 	// First run variable initialization 
@@ -77,29 +84,32 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 		channels = cur_rgb.channels();
 		size 	 = rows*cols*channels;
 		ref_rgb  = cur_rgb.clone();
-		
-		frameCounter++;
 	}
 	
 	//Calculating image difference between the current and previous images
 	frameDif(cur_rgb, ref_rgb, dif_rgb, 255*0.33);
-	ref_rgb = cur_rgb.clone();
-
 	
-	//Display
-	 
-	//Blob detection
+	for(int y = 0; y < rows; y++)
+	{
+		uchar* cur = cur_rgb.ptr<uchar>(y);
+		uchar* ref = ref_rgb.ptr<uchar>(y);
+		for(int x = 0; x < cols; x ++)
+			ref[x] = cur[x]*(1-backFactor)+ ref[x]*backFactor; 
+	}
+	
 	if(display)
 	{
-		detectBlobs(dif_rgb, rgb_rects, 15, true);
+		//Blob detection
+		detectBlobs(dif_rgb, rgb_rects, 15, false);
 		
 		Mat temp = dif_rgb.clone();
 	    for(Rect rect: rgb_rects)
 			rectangle(temp, rect, 255, 1);
 		rgb_rects.clear();
 		
-		imshow("dif_rgb", temp);
-		moveWindow("dif_rgb", 0, 0);
+		//Display
+		//~ imshow("dif_rgb", temp);
+		//~ moveWindow("dif_rgb", 0, 0);
 		imshow("cur_rgb", cur_rgb);
 		moveWindow("cur_rgb", 645, 0);
 		waitKey(1);
@@ -151,7 +161,7 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 	//Publish image difference
 	cv_ptr->image = dif_rgb;
 	image_pub_dif.publish(cv_ptr->toImageMsg());
-	
+	frameCounter++;
 }
 
 int main(int argc, char** argv)

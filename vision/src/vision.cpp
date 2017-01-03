@@ -467,7 +467,7 @@ void frameDif(Mat& src1, Mat& src2, Mat& dst, float thresh)
  */
 void gammaCorrection(Mat& src)
 {
-	double inverse_gamma = 1.0 / 2.0;
+	double inverse_gamma = 1.0 / 2.5;
 	
 	Mat lut_matrix(1, 256, CV_8UC1 );
 	uchar * ptr = lut_matrix.ptr();

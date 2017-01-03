@@ -55,7 +55,7 @@ class Chroma_processing
 		int interval = 5;
 		int frameCounter = -1, myThreshold = 100;
 		
-		float backFactor = 0.40;
+		float backFactor = 0.80;
 		
 		long curTime ;
 		
