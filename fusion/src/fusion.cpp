@@ -63,11 +63,14 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 	
 	fusion 	 = (cv_ptr_dif->image).clone();
 	
+	int height 	 = (msg->height);
+	int width 	 = (msg->width);
+	
 	//Detect moving blobs
 	detectBlobs(fusion, fusion_rects, 15, false);
 	
 	//Track blobs
-	track(fusion_rects, people);
+	track(fusion_rects, people, width, height);
 	
 	//Check which tracked box has the highest rank
 	//and draw the boxes for visualization
@@ -106,15 +109,15 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 	cout<<"start "<<end<<endl;
 	for(int i = 0; i < end; i++)
 	{
-		if (index == i)
-		{
+		//~ if (index == i)
+		//~ {
 			rectangle(fusion, people.tracked_boxes[i], 255, 1);
 			cout<<people.tracked_boxes[i].x<<endl;
 			cout<<people.tracked_boxes[i].y<<endl;
 			cout<<people.tracked_boxes[i].width<<endl;
 			cout<<people.tracked_boxes[i].height<<endl;
 			cout<<people.tracked_rankings[i]<<endl;
-		}
+		//~ }
 	}
 	
 	end	  = people.tracked_boxes.size();

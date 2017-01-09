@@ -70,6 +70,7 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 			}
 		}
 	}
+	
 	//In this phase we loop through all the produced rectangles and again try to merge those whose
 	//intersection is above a certain threshold	
 	int end = colour_areas.size();
@@ -81,24 +82,44 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 			Rect_<int> rect    = colour_areas[b];
 			Rect all 		   = removal | rect;
 			
-			int y_distance;
+			int y_distance = rows;
 			if (removal.y < rect.y)
-				y_distance = abs(removal.y + removal.height - rect.y);
+				y_distance = rect.y - (removal.y + removal.height);
 			else
-				y_distance = abs(removal.y - rect.y + rect.height);
+				y_distance = removal.y - (rect.y + rect.height);
 				
 			Rect intersection;
-			if(y_distance < rows/3)
+			int threshold = 0;
+			if(y_distance < rows/20)
 			{
-				int temp 	 = removal.y;
+				int y_temp 	 = removal.y;
 				removal.y 	 = rect.y;
 				intersection = removal & rect;
-				removal.y 	 = temp;
+				threshold 	 = intersection.area();
+				if (threshold == 0)
+				{
+					int x_distance = cols;
+					if (removal.x < rect.x)
+						x_distance = rect.x - (removal.x + removal.width);
+					else
+						x_distance = removal.x - (rect.x + rect.width);
+					
+					
+					float area_thres;
+					if(removal.area() < rect.area())
+						area_thres = rect.area();
+					else
+						area_thres = removal.area();
+					if((x_distance < cols/50) && (all.area() < 2*area_thres))
+					{
+						threshold = 1;
+					}
+				}
+				removal.y 	 = y_temp;
 			}
-			else
-				intersection = removal & rect;
 				
-			int threshold 	 = intersection.area();
+			
+			
 			if(threshold < 1)
 				continue;
 			else if(threshold > 0)
@@ -112,7 +133,7 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 			}
 			
 		}
-	}
+	}	
 					
 	end = colour_areas.size();
 	
@@ -176,11 +197,11 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
  * 
  * RETURN --
  */
-void track(vector< Rect_<int> >& cur_boxes, People& collection, int rank)
+void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int height, int rank)
 {
 	bool exists = false;
 	float step  = 1.2;
-	vector<float> distances;
+	vector<bool> updates(collection.tracked_boxes.size(), false);
 	if(!cur_boxes.empty())
 	{	
 		
@@ -193,49 +214,42 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int rank)
 				int threshold = intersection.area();	
 				if(threshold > 0)
 				{
-					float dif = cur_boxes[a].area()/collection.tracked_boxes[b].area();
 					if(cur_boxes[a].area() > collection.tracked_boxes[b].area())
 					{
-						if(collection.tracked_boxes[b].area() > threshold)
-						{	
-							collection.tracked_boxes[b] = cur_boxes[a];
-							if(dif < 10)
-							{
-								collection.tracked_boxes[b].width = (collection.tracked_boxes[b].width + cur_boxes[a].width)/2;
-								collection.tracked_boxes[b].height = (collection.tracked_boxes[b].height + cur_boxes[a].height)/2;
-							}
-						}
-						else
-						{
-							collection.tracked_boxes[b] = cur_boxes[a];
-						}
+						collection.tracked_boxes[b] = collection.tracked_boxes[b] | cur_boxes[a];
 					}
 					else
 					{
 						float dif = collection.tracked_boxes[b].area()/cur_boxes[a].area();
-						if((cur_boxes[a].area()) > threshold)
+						if(cur_boxes[a].area() > threshold)
 						{	
 							if(dif < 2)
 							{
-								collection.tracked_boxes[b].x += (cur_boxes[a].x - collection.tracked_boxes[b].x)/10;
-								collection.tracked_boxes[b].y += (cur_boxes[a].y - collection.tracked_boxes[b].y)/10;
+								collection.tracked_boxes[b].x += (cur_boxes[a].x - collection.tracked_boxes[b].x)/2;
+								collection.tracked_boxes[b].y += (cur_boxes[a].y - collection.tracked_boxes[b].y)/2;
 								collection.tracked_boxes[b].width += (cur_boxes[a].width - collection.tracked_boxes[b].width)/10;
 								collection.tracked_boxes[b].height += (cur_boxes[a].height - collection.tracked_boxes[b].height)/10;
 							}
 							//~ else
 							//~ {
-								//~ collection.tracked_boxes[b].width = (collection.tracked_boxes[b].width + cur_boxes[a].width)/2;
-								//~ collection.tracked_boxes[b].height = (collection.tracked_boxes[b].height + cur_boxes[a].height)/2;
+								//~ collection.tracked_boxes[b].x += (cur_boxes[a].x - collection.tracked_boxes[b].x)/(dif*5);
+								//~ collection.tracked_boxes[b].y += (cur_boxes[a].y - collection.tracked_boxes[b].y)/(dif*5);
 							//~ }
 						}
-						else
+						else if(cur_boxes[a].area() == threshold)
 						{
-							collection.tracked_boxes[b] = collection.tracked_boxes[b] | cur_boxes[a];
+							if(dif < 2.5)
+							{
+								int ratio = dif*10;
+								collection.tracked_boxes[b].x += (cur_boxes[a].x - collection.tracked_boxes[b].x)/(ratio);
+								collection.tracked_boxes[b].y += (cur_boxes[a].y - collection.tracked_boxes[b].y)/(ratio);
+								collection.tracked_boxes[b].width += (cur_boxes[a].width - collection.tracked_boxes[b].width)/(ratio);
+								collection.tracked_boxes[b].height += (cur_boxes[a].height - collection.tracked_boxes[b].height)/(ratio*2);
+							}
 						}
 					}
-						
-					if(collection.tracked_rankings[b] <= 30)
-						collection.tracked_rankings[b] = collection.tracked_rankings[b] + step;
+					
+					updates.at(b) = true;
 					exists = true;
 					break;
 				}
@@ -247,10 +261,111 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int rank)
 				collection.tracked_rankings.push_back(rank + step);
 			}
 		}
+		
+		/*
+		int end = collection.tracked_boxes.size();
+		for(int a = 0; a < end; a++) 
+		{
+			for(int b = a + 1; b < end; b++) 
+			{	
+				Rect_<int> removal = collection.tracked_boxes[a];
+				Rect_<int> rect    = collection.tracked_boxes[b];
+				Rect all 		   = removal | rect;
+				
+				int y_distance;
+				if (removal.y < rect.y)
+					y_distance = rect.y - (removal.y + removal.height);
+				else
+					y_distance = removal.y - (rect.y + rect.height);
+					
+				Rect intersection;
+				if(y_distance < height/5)
+				{
+					int temp 	 = removal.y;
+					removal.y 	 = rect.y;
+					intersection = removal & rect;
+					removal.y 	 = temp;
+				}
+					
+				int threshold 	 = intersection.area();
+				if(threshold < 1)
+					continue;
+				else if(threshold > 0)
+				{
+					collection.tracked_boxes[a] = all;
+					collection.tracked_boxes[b] = collection.tracked_boxes.back();
+					collection.tracked_boxes.pop_back();
+					
+					collection.tracked_rankings[b] = collection.tracked_rankings.back();
+					collection.tracked_rankings.pop_back();
+					collection.tracked_pos[b] = collection.tracked_pos.back();
+					collection.tracked_pos.pop_back();
+					a = -1;
+					end--;
+					break;
+				}
+				
+			}
+		}
+		
+		end = collection.tracked_boxes.size();
+		for(int a = 0; a < end; a++) 
+		{
+			for(int b = a + 1; b < end; b++) 
+			{	
+				Rect_<int> removal = collection.tracked_boxes[a];
+				Rect_<int> rect    = collection.tracked_boxes[b];
+				Rect all 		   = removal | rect;
+				
+				int x_distance;
+				if (removal.x < rect.x)
+					x_distance = rect.x - (removal.x + removal.width);
+				else
+					x_distance = removal.x - (rect.x + rect.width);
+				
+				float area_thres;
+				if(removal.area() < rect.area())
+					area_thres = rect.area();
+				else
+					area_thres = removal.area();
+					
+				if((x_distance < 5) && (all.area() < 1.5*area_thres))
+				{
+					collection.tracked_boxes[a] = all;
+					collection.tracked_boxes[b] = collection.tracked_boxes.back();
+					collection.tracked_boxes.pop_back();
+					
+					collection.tracked_rankings[b] = collection.tracked_rankings.back();
+					collection.tracked_rankings.pop_back();
+					collection.tracked_pos[b] = collection.tracked_pos.back();
+					collection.tracked_pos.pop_back();
+					a = -1;
+					end--;
+					break;
+				}
+				
+			}
+		}
+		*/
+		
+		//Update the rankings
 		for(int a = 0; a < collection.tracked_boxes.size(); a++)
 		{
+			if (updates[a] == true)
+			{
+				if(collection.tracked_rankings[a] <= 30)
+					collection.tracked_rankings[a] = collection.tracked_rankings[a] + step;
+			}
+				
 			collection.tracked_rankings[a] = collection.tracked_rankings[a] - 1;
+			
+			//check we did not exceed the limits 
+			if(collection.tracked_boxes[a].x + collection.tracked_boxes[a].width > width)
+				collection.tracked_boxes[a].width = width - collection.tracked_boxes[a].x;
+			if(collection.tracked_boxes[a].y + collection.tracked_boxes[a].height > height)
+				collection.tracked_boxes[a].height = height - collection.tracked_boxes[a].y;
 		}
+		//Delete those that fall below 0 rank
 		for(int a = 0; a < collection.tracked_boxes.size(); a++)
 		{
 			if(collection.tracked_rankings[a] <= 0 && collection.tracked_boxes.size() > 0)
