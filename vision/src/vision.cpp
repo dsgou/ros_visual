@@ -90,7 +90,8 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 				
 			Rect intersection;
 			int threshold = 0;
-			if(y_distance < rows/20)
+			int factor = 20;
+			if(y_distance < rows/factor)
 			{
 				int y_temp 	 = removal.y;
 				removal.y 	 = rect.y;
@@ -105,12 +106,8 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 						x_distance = removal.x - (rect.x + rect.width);
 					
 					
-					float area_thres;
-					if(removal.area() < rect.area())
-						area_thres = rect.area();
-					else
-						area_thres = removal.area();
-					if((x_distance < cols/50) && (all.area() < 2*area_thres))
+					float area_thres = min(rect.area(), removal.area());
+					if((x_distance < cols/(2*factor))) && (all.area() < 2*area_thres))
 					{
 						threshold = 1;
 					}
