@@ -106,19 +106,27 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 		}
 	}
 	
+	end = people.tracked_rankings.size();
 	cout<<"start "<<end<<endl;
 	for(int i = 0; i < end; i++)
 	{
 		//~ if (index == i)
 		//~ {
 			rectangle(fusion, people.tracked_boxes[i], 255, 1);
-			cout<<people.tracked_boxes[i].x<<endl;
-			cout<<people.tracked_boxes[i].y<<endl;
-			cout<<people.tracked_boxes[i].width<<endl;
-			cout<<people.tracked_boxes[i].height<<endl;
+			//~ cout<<people.tracked_boxes[i].x<<endl;
+			//~ cout<<people.tracked_boxes[i].y<<endl;
+			//~ cout<<people.tracked_boxes[i].width<<endl;
+			//~ cout<<people.tracked_boxes[i].height<<endl;
 			cout<<people.tracked_rankings[i]<<endl;
 		//~ }
 	}
+	//~ for(int i = 0; i < fusion_rects.size(); i++)
+	//~ {
+		//~ if (index == i)
+		//~ {
+			//~ rectangle(fusion, fusion_rects[i], 255, 1);
+		//~ }
+	//~ }
 	
 	end	  = people.tracked_boxes.size();
 	for(int i = 0; i < end; i++)
