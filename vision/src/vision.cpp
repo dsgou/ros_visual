@@ -20,147 +20,124 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 	int channels 		   = src.channels();
 	int size 			   = cols*rows*channels;
 	
-	//Starting from the 1st non-zero pixel it starts forming rectangles (range x range)
-	//and fuses them if their intersection is above a certain threshold.
-	for(int y = 0; y < 1; y++)
+	if(range > 0)
 	{
-		const uchar *dif = src.ptr<uchar>(y);
-		for(int x = 0; x < size; x = x + channels)
+		//Starting from the 1st non-zero pixel it starts forming rectangles (range x range)
+		//and fuses them if their intersection is above a certain threshold.
+		for(int y = 0; y < 1; y++)
 		{
-			if(dif[x] != 0)
-			{				
-				int i = (x/channels)%(cols); 
-				int j = floor(x/(cols*channels));
-				
-				Rect_<int> removal;
-				//If the rect is out of bounds skip
-				if((i + range >= cols) || (j + range >= rows))
-					continue;
-				
-				removal = Rect(i, j, range , range);
-				if(removal.width < 1 || removal.height < 1)
-					continue;
+			const uchar *dif = src.ptr<uchar>(y);
+			for(int x = 0; x < size; x = x + channels)
+			{
+				if(dif[x] != 0)
+				{				
+					int i = (x/channels)%(cols); 
+					int j = floor(x/(cols*channels));
 					
-				if(!colour_areas.empty())
-				{
-					for(int k = 0; k < colour_areas.size(); k++)
+					//If the rect is not out of bounds and the dime
+					if((i + range < cols) && (j + range < rows))
 					{
-						Rect_<int> rect   = colour_areas[k];
-						Rect all 		  = removal | rect;
-						Rect intersection = removal & rect;
-						int threshold 	  = intersection.area();
-						
-						if(threshold < 1)
-							continue;
-						else if(threshold > 0)
+						Rect_<int> removal;
+						removal = Rect(i, j, range , range);
+						if(!colour_areas.empty())
 						{
-							flag = true;
-							colour_areas[k] = all;
-							break;
+							for(int k = 0; k < colour_areas.size(); k++)
+							{
+								Rect_<int> rect   = colour_areas[k];
+								Rect all 		  = removal | rect;
+								Rect intersection = removal & rect;
+								int threshold 	  = intersection.area();
+								
+								if(threshold > 0)
+								{
+									flag = true;
+									colour_areas[k] = all;
+									break;
+								}
+							
+							}
+							if(!flag)
+								colour_areas.push_back(removal);
+							else
+								flag = false;
 						}
-					
-					}
-					if(!flag)
-						colour_areas.push_back(removal);
-					else
-						flag = false;
-				}
-				else
-					colour_areas.push_back(removal);
-			}
-		}
-	}
-	
-	//In this phase we loop through all the produced rectangles and again try to merge those whose
-	//intersection is above a certain threshold	
-	int end = colour_areas.size();
-	for(int a = 0; a < end; a++) 
-	{
-		for(int b = a + 1; b < end; b++) 
-		{	
-			Rect_<int> removal = colour_areas[a];
-			Rect_<int> rect    = colour_areas[b];
-			Rect all 		   = removal | rect;
-			
-			int y_distance = rows;
-			if (removal.y < rect.y)
-				y_distance = rect.y - (removal.y + removal.height);
-			else
-				y_distance = removal.y - (rect.y + rect.height);
-				
-			Rect intersection;
-			int threshold = 0;
-			int factor = 20;
-			if(y_distance < rows/factor)
-			{
-				int y_temp 	 = removal.y;
-				removal.y 	 = rect.y;
-				intersection = removal & rect;
-				threshold 	 = intersection.area();
-				if (threshold == 0)
-				{
-					int x_distance = cols;
-					if (removal.x < rect.x)
-						x_distance = rect.x - (removal.x + removal.width);
-					else
-						x_distance = removal.x - (rect.x + rect.width);
-					
-					
-					float area_thres = min(rect.area(), removal.area());
-					if((x_distance < cols/(2*factor))) && (all.area() < 2*area_thres))
-					{
-						threshold = 1;
+						else
+							colour_areas.push_back(removal);
+						
 					}
 				}
-				removal.y 	 = y_temp;
 			}
-				
-			if(threshold > 0)
-			{
-				colour_areas[a] = all;
-				colour_areas[b] = colour_areas.back();
-				colour_areas.pop_back();
-				a = -1;
-				end--;
-				break;
-			}
-			
 		}
-	}	
-					
-	end = colour_areas.size();
-	
-	//Filter out erroneous areas (dimensions < 0) that sometimes occur
-	for(int k = 0; k < end; k++)
-	{
-		float x  	 = colour_areas[k].x;
-		float y 	 = colour_areas[k].y;
-		float width  = colour_areas[k].width;
-		float height = colour_areas[k].height;
-		float area = colour_areas[k].area();
-		if((area <= pow(range,2)) || (x < 0) || (y < 0) || (height < 0) || (width < 0))
+		
+		//In this phase we loop through all the produced rectangles and again try to merge those whose
+		//intersection is above a certain threshold	
+		int end = colour_areas.size();
+		for(int a = 0; a < end; a++) 
 		{
-			colour_areas[k] = colour_areas.back();
-			colour_areas.pop_back();
-			k--;
-			end--;
+			for(int b = a + 1; b < end; b++) 
+			{	
+				Rect_<int> removal = colour_areas[a];
+				Rect_<int> rect    = colour_areas[b];
+				Rect all 		   = removal | rect;
 				
-		}
-	}
-	
-	//Filter out areas whose ratio cannot belong to a human
-	if(detect_people)
-	{
+				int y_distance = rows;
+				if (removal.y < rect.y)
+					y_distance = rect.y - (removal.y + removal.height);
+				else
+					y_distance = removal.y - (rect.y + rect.height);
+					
+				Rect intersection;
+				int threshold = 0;
+				int factor = 20;
+				if(y_distance < rows/factor)
+				{
+					int y_temp 	 = removal.y;
+					removal.y 	 = rect.y;
+					intersection = removal & rect;
+					threshold 	 = intersection.area();
+					if (threshold == 0)
+					{
+						int x_distance = cols;
+						if (removal.x < rect.x)
+							x_distance = rect.x - (removal.x + removal.width);
+						else
+							x_distance = removal.x - (rect.x + rect.width);
+						
+						
+						float area_thres = min(rect.area(), removal.area());
+						if((x_distance < cols/(2*factor)) && (all.area() < 2*area_thres))
+						{
+							threshold = 1;
+						}
+					}
+					removal.y 	 = y_temp;
+				}
+					
+				if(threshold > 0)
+				{
+					colour_areas[a] = all;
+					colour_areas[b] = colour_areas.back();
+					colour_areas.pop_back();
+					a = -1;
+					end--;
+					break;
+				}
+				
+			}
+		}	
+						
 		end = colour_areas.size();
+		
+		//Filter out erroneous areas (dimensions < 0) that sometimes occur
 		for(int k = 0; k < end; k++)
 		{
+			float x  	 = colour_areas[k].x;
+			float y 	 = colour_areas[k].y;
 			float width  = colour_areas[k].width;
 			float height = colour_areas[k].height;
-			float area   = colour_areas[k].area();
-			float ratio  = width/height;
-			if((ratio < 0.25) || (ratio > 1.5) || (area < cols*rows*0.02))
+			float area = colour_areas[k].area();
+			if((area <= pow(range,2)) || (x < 0) || (y < 0) || (height < 0) || (width < 0))
 			{
-				//~ rectangle(src, colour_areas[k], 0, CV_FILLED);
 				colour_areas[k] = colour_areas.back();
 				colour_areas.pop_back();
 				k--;
@@ -168,7 +145,31 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 					
 			}
 		}
+		
+		//Filter out areas whose ratio cannot belong to a human
+		if(detect_people)
+		{
+			end = colour_areas.size();
+			for(int k = 0; k < end; k++)
+			{
+				float width  = colour_areas[k].width;
+				float height = colour_areas[k].height;
+				float area   = colour_areas[k].area();
+				float ratio  = width/height;
+				if((ratio < 0.25) || (ratio > 1.5) || (area < cols*rows*0.02))
+				{
+					//~ rectangle(src, colour_areas[k], 0, CV_FILLED);
+					colour_areas[k] = colour_areas.back();
+					colour_areas.pop_back();
+					k--;
+					end--;
+						
+				}
+			}
+		}
 	}
+	else
+		throw invalid_argument("detectBlobs, range < 0");
 	
 	//~ cout<<"Size: "<<colour_areas.size()<<endl;
 	//~ for(Rect rect: colour_areas)
