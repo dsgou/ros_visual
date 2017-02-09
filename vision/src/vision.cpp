@@ -216,6 +216,7 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 					cur_boxes[b] = cur_boxes.back();
 					cur_boxes.pop_back();
 					end--;
+					break;
 				}
 			}
 			
@@ -420,9 +421,8 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 						
 						collection.tracked_rankings[b] = collection.tracked_rankings.back();
 						collection.tracked_rankings.pop_back();
-						a = -1;
+						b=a;
 						end--;
-						break;
 					}
 				}
 				
