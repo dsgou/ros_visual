@@ -413,7 +413,7 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 				if(threshold > 0)
 				{
 					float rank_dif = abs(collection.tracked_rankings[a] - collection.tracked_rankings[b])/(collection.tracked_rankings[a] + collection.tracked_rankings[b]);
-					//~ if(rank_dif < 0.6)
+					if(rank_dif < 0.8)
 					{
 						collection.tracked_boxes[a] = all;
 						collection.tracked_boxes[b] = collection.tracked_boxes.back();
