@@ -204,11 +204,11 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 			all = Rect(0,0,0,0);
 			for(int b = 0; b < end; b++) 
 			{
-				Rect intersection = cur_boxes[b] & collection.tracked_boxes[a];
+				Rect intersection = cur_boxes[b] | collection.tracked_boxes[a];
 				int threshold = intersection.area();	
-				if(threshold > 0)
+				float area_thres = max(cur_boxes[b].area(), collection.tracked_boxes[a].area());
+				if(threshold < 1.1*area_thres)
 				{
-					
 					if (all.area() == 0)
 						all = cur_boxes[b];
 					else
