@@ -215,7 +215,6 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 						all = cur_boxes[b] | all;
 					cur_boxes[b] = cur_boxes.back();
 					cur_boxes.pop_back();
-					b = 0;
 					end--;
 				}
 			}
@@ -403,24 +402,28 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 						
 						
 						float area_thres = max(removal.area(), rect.area());
-						if((x_distance < width/50) && (all.area() < 2*area_thres))
-						{
-							threshold = 1;
-						}
+						//~ if((x_distance < width/50) && (all.area() < 2*area_thres))
+						//~ {
+							//~ threshold = 1;
+						//~ }
 					}
 					removal.y 	 = y_temp;
 				}
 				if(threshold > 0)
 				{
-					collection.tracked_boxes[a] = all;
-					collection.tracked_boxes[b] = collection.tracked_boxes.back();
-					collection.tracked_boxes.pop_back();
-					
-					collection.tracked_rankings[b] = collection.tracked_rankings.back();
-					collection.tracked_rankings.pop_back();
-					a = -1;
-					end--;
-					break;
+					float rank_dif = abs(collection.tracked_rankings[a] - collection.tracked_rankings[b])/(collection.tracked_rankings[a] + collection.tracked_rankings[b]);
+					//~ if(rank_dif < 0.6)
+					{
+						collection.tracked_boxes[a] = all;
+						collection.tracked_boxes[b] = collection.tracked_boxes.back();
+						collection.tracked_boxes.pop_back();
+						
+						collection.tracked_rankings[b] = collection.tracked_rankings.back();
+						collection.tracked_rankings.pop_back();
+						a = -1;
+						end--;
+						break;
+					}
 				}
 				
 			}
