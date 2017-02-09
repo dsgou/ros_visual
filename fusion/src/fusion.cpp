@@ -106,27 +106,19 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 		}
 	}
 	
-	end = people.tracked_rankings.size();
 	cout<<"start "<<end<<endl;
 	for(int i = 0; i < end; i++)
 	{
 		//~ if (index == i)
 		//~ {
 			rectangle(fusion, people.tracked_boxes[i], 255, 1);
-			//~ cout<<people.tracked_boxes[i].x<<endl;
-			//~ cout<<people.tracked_boxes[i].y<<endl;
-			//~ cout<<people.tracked_boxes[i].width<<endl;
-			//~ cout<<people.tracked_boxes[i].height<<endl;
+			cout<<people.tracked_boxes[i].x<<endl;
+			cout<<people.tracked_boxes[i].y<<endl;
+			cout<<people.tracked_boxes[i].width<<endl;
+			cout<<people.tracked_boxes[i].height<<endl;
 			cout<<people.tracked_rankings[i]<<endl;
 		//~ }
 	}
-	//~ for(int i = 0; i < fusion_rects.size(); i++)
-	//~ {
-		//~ if (index == i)
-		//~ {
-			//~ rectangle(fusion, fusion_rects[i], 255, 1);
-		//~ }
-	//~ }
 	
 	end	  = people.tracked_boxes.size();
 	for(int i = 0; i < end; i++)
@@ -238,23 +230,30 @@ void Fusion_processing::writeCSV(People& collection, string path, ros::Time time
 
 		for(int i = 0; i < collection.tracked_boxes.size() ; i++) 
 		{
-			
-			Rect box = collection.tracked_boxes[i];
-			Position pos = collection.tracked_pos[i];
-			storage
-				<<time<<"\t"
-				<<i<<"\t"
-				<<box.x<<"\t"
-				<<box.y<<"\t"
-				<<box.width<<"\t"
-				<<box.height<<"\t"
-				<<pos.x<<"\t"
-				<<pos.y<<"\t"
-				<<pos.z<<"\t"
-				<<pos.top<<"\t"
-				<<pos.height<<"\t"
-				<<pos.distance<<
-			endl;
+			int rank = collection.tracked_rankings[i];
+			if(rank > 3)
+			{
+				Rect box = collection.tracked_boxes[i];
+				Position pos = collection.tracked_pos[i];
+				storage
+					<<time<<"\t"
+					<<i<<"\t"
+					<<box.x<<"\t"
+					<<box.y<<"\t"
+					<<box.width<<"\t"
+					<<box.height<<"\t"
+					<<pos.x<<"\t"
+					<<pos.y<<"\t"
+					<<pos.z<<"\t"
+					<<pos.top<<"\t"
+					<<pos.height<<"\t"
+					<<pos.distance<<
+				endl;
+			}
+			else
+			{
+				storage<<time<<endl;
+			}
 		}
 	}
 	else
@@ -284,6 +283,7 @@ void Fusion_processing::publishResults(People& collection, ros::Time time){
 		
 		for(int i = 0; i < collection.tracked_boxes.size() ; i++) 
 		{
+			
 			Rect box = collection.tracked_boxes[i];
 			Position pos = collection.tracked_pos[i];
 			
