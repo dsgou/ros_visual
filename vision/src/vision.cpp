@@ -73,7 +73,7 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 	
 	//In this phase we loop through all the produced rectangles and again try to merge those whose
 	//intersection is above a certain threshold	
-	int end = colour_areas.size();
+	int end = colour_areas.size();	
 	for(int a = 0; a < end; a++) 
 	{
 		for(int b = a + 1; b < end; b++) 
@@ -126,46 +126,37 @@ void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool d
 			
 		}
 	}	
-					
-	end = colour_areas.size();
-	
+	vector< Rect_<int> >::iterator it;					
 	//Filter out erroneous areas (dimensions < 0) that sometimes occur
-	for(int k = 0; k < end; k++)
+	for(it = colour_areas.begin(); it < colour_areas.end();)
 	{
-		float x  	 = colour_areas[k].x;
-		float y 	 = colour_areas[k].y;
-		float width  = colour_areas[k].width;
-		float height = colour_areas[k].height;
-		float area = colour_areas[k].area();
-		if((area <= pow(range,2)) || (x < 0) || (y < 0) || (height < 0) || (width < 0))
-		{
-			colour_areas[k] = colour_areas.back();
-			colour_areas.pop_back();
-			k--;
-			end--;
-				
-		}
+		Rect_<int> rect = *it; 
+		float x  	 = rect.x;
+		float y 	 = rect.y;
+		float width  = rect.width;
+		float height = rect.height;
+		if((x < 0) || (y < 0) || (height <= 0) || (width <= 0))
+			it = colour_areas.erase(it);
+		else
+			it++;
 	}
 	
 	//Filter out areas whose ratio cannot belong to a human
 	if(detect_people)
 	{
-		end = colour_areas.size();
-		for(int k = 0; k < end; k++)
+		
+		vector< Rect_<int> >::iterator it;
+		for(it = colour_areas.begin(); it < colour_areas.end();)
 		{
-			float width  = colour_areas[k].width;
-			float height = colour_areas[k].height;
-			float area   = colour_areas[k].area();
+			Rect_<int> rect = *it; 
+			float width  = rect.width;
+			float height = rect.height;
+			float area   = rect.area();
 			float ratio  = width/height;
 			if((ratio < 0.25) || (ratio > 1.5) || (area < cols*rows*0.02))
-			{
-				//~ rectangle(src, colour_areas[k], 0, CV_FILLED);
-				colour_areas[k] = colour_areas.back();
-				colour_areas.pop_back();
-				k--;
-				end--;
-					
-			}
+				it = colour_areas.erase(it);
+			else
+				it++;
 		}
 	}
 	
@@ -196,33 +187,34 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 	vector<bool> updates(collection.tracked_boxes.size(), false);
 	if(!cur_boxes.empty())
 	{	
-		int end = cur_boxes.size();
 		Rect_<int> all;
 		for(int a = 0; a < collection.tracked_boxes.size(); a++) 
 		{	
 			exists = false;
 			all = Rect(0,0,0,0);
-			for(int b = 0; b < end; b++) 
+			vector< Rect_<int> >::iterator it;
+			for(it = cur_boxes.begin(); it < cur_boxes.end();) 
 			{
-				Rect intersection = cur_boxes[b] | collection.tracked_boxes[a];
+				Rect_<int> cur_box = *it;
+				Rect intersection = cur_box | collection.tracked_boxes[a];
 				int threshold = intersection.area();	
-				float area_thres = max(cur_boxes[b].area(), collection.tracked_boxes[a].area());
+				float area_thres = max(cur_box.area(), collection.tracked_boxes[a].area());
 				if(threshold < 1.1*area_thres)
 				{
 					if (all.area() == 0)
-						all = cur_boxes[b];
+						all = cur_box;
 					else
-						all = cur_boxes[b] | all;
-					cur_boxes[b] = cur_boxes.back();
-					cur_boxes.pop_back();
-					end--;
+						all = cur_box | all;
+					it = cur_boxes.erase(it);
 					break;
 				}
+				else
+					it++;
 			}
-			
+			/*
 			Rect intersection = collection.tracked_boxes[a] & all;
 			int threshold = intersection.area();
-			/*
+			
 			if(threshold > 4*collection.tracked_boxes[a].area()/5 && threshold > 4*all.area()/5)
 			{
 				collection.tracked_boxes[a].x = (all.x + collection.tracked_boxes[a].x)/2;
@@ -241,7 +233,11 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 			{
 				if(all.area() > collection.tracked_boxes[a].area())
 				{
-					collection.tracked_boxes[a] = collection.tracked_boxes[a] | all;
+					//~ collection.tracked_boxes[a] = collection.tracked_boxes[a] | all;
+					collection.tracked_boxes[a].x = min(all.x,collection.tracked_boxes[a].x);
+					collection.tracked_boxes[a].y = min(all.y,collection.tracked_boxes[a].y);
+					collection.tracked_boxes[a].width = (all.width + collection.tracked_boxes[a].width)/2;
+					collection.tracked_boxes[a].height = (all.height + collection.tracked_boxes[a].height)/2;
 				}
 				else
 				{
@@ -279,13 +275,13 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 								int y_dif = (all.y - collection.tracked_boxes[a].y);
 								int w_dif = (all.width - collection.tracked_boxes[a].width);
 								int h_dif = (all.height - collection.tracked_boxes[a].height);
-								cout<<"x "<<x_dif<<endl;
-								cout<<"t "<<y_dif<<endl;
-								cout<<"w "<<w_dif<<endl;
-								cout<<"h "<<h_dif<<endl;
-								cout<<"d "<<dif<<endl;
-								cout<<"rw "<<(w_dif*abs(x_dif)/factor)/dif<<endl;
-								cout<<"rh "<<(h_dif*abs(y_dif)/factor)/dif<<endl;
+								//~ cout<<"x "<<x_dif<<endl;
+								//~ cout<<"t "<<y_dif<<endl;
+								//~ cout<<"w "<<w_dif<<endl;
+								//~ cout<<"h "<<h_dif<<endl;
+								//~ cout<<"d "<<dif<<endl;
+								//~ cout<<"rw "<<(w_dif*abs(x_dif)/factor)/dif<<endl;
+								//~ cout<<"rh "<<(h_dif*abs(y_dif)/factor)/dif<<endl;
 								collection.tracked_boxes[a].x += x_dif/ratio;
 								collection.tracked_boxes[a].y += y_dif/ratio;
 								collection.tracked_boxes[a].width += (w_dif*abs(x_dif))/(factor*ratio);
@@ -294,7 +290,7 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 									collection.tracked_boxes[a].width = 0;
 								if(collection.tracked_boxes[a].height < 0)
 									collection.tracked_boxes[a].height = 0;
-						
+								
 					
 				}
 				updates.at(a) = true;	
@@ -370,7 +366,7 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 		*/
 		//In this phase we loop through all the produced rectangles and again try to merge those whose
 		//intersection is above a certain threshold	
-		end = collection.tracked_boxes.size();
+		int end = collection.tracked_boxes.size();
 		for(int a = 0; a < end; a++) 
 		{
 			for(int b = a + 1; b < end; b++) 
@@ -446,17 +442,18 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 			if(collection.tracked_boxes[a].y + collection.tracked_boxes[a].height > height)
 				collection.tracked_boxes[a].height = height - collection.tracked_boxes[a].y;
 		}
+		
+		vector<float>::iterator rank_it;
 		//Delete those that fall below 0 rank
-		for(int a = 0; a < collection.tracked_boxes.size(); a++)
+		for(rank_it = collection.tracked_rankings.begin(); rank_it < collection.tracked_rankings.end();)
 		{
-			if(collection.tracked_rankings[a] <= 0 && collection.tracked_boxes.size() > 0)
+			if(*rank_it <= 0)
 			{
-				collection.tracked_boxes[a]    = collection.tracked_boxes.back();
-				collection.tracked_boxes.pop_back();
-				collection.tracked_rankings[a] = collection.tracked_rankings.back();
-				collection.tracked_rankings.pop_back();
-				a--;
+				rank_it = collection.tracked_rankings.erase(rank_it);
+				collection.tracked_boxes.erase(collection.tracked_boxes.begin() + distance(collection.tracked_rankings.begin(), rank_it));
 			}
+			else
+				rank_it++;
 			
 		}
 		
