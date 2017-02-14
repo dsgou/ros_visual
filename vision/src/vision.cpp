@@ -199,14 +199,14 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 				Rect intersection = cur_box | collection.tracked_boxes[a];
 				int threshold = intersection.area();	
 				float area_thres = max(cur_box.area(), collection.tracked_boxes[a].area());
-				if(threshold < 1.1*area_thres)
+				if(threshold > 0 && threshold < 1.1*area_thres)
 				{
 					if (all.area() == 0)
 						all = cur_box;
 					else
 						all = cur_box | all;
 					it = cur_boxes.erase(it);
-					break;
+
 				}
 				else
 					it++;
@@ -233,63 +233,37 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 			{
 				if(all.area() > collection.tracked_boxes[a].area())
 				{
-					//~ collection.tracked_boxes[a] = collection.tracked_boxes[a] | all;
-					collection.tracked_boxes[a].x = min(all.x,collection.tracked_boxes[a].x);
-					collection.tracked_boxes[a].y = min(all.y,collection.tracked_boxes[a].y);
+					collection.tracked_boxes[a].x = (all.x + collection.tracked_boxes[a].x)/2;
+					collection.tracked_boxes[a].y = (all.y  + collection.tracked_boxes[a].y)/2;
 					collection.tracked_boxes[a].width = (all.width + collection.tracked_boxes[a].width)/2;
 					collection.tracked_boxes[a].height = (all.height + collection.tracked_boxes[a].height)/2;
 				}
 				else
 				{
-					float dif = collection.tracked_boxes[a].area()/all.area();
-					
-						/*
-						if(all.area() > threshold)
-						{	
-							
-								collection.tracked_boxes[a].x += (all.x - collection.tracked_boxes[a].x)/(dif*2);
-								collection.tracked_boxes[a].y += (all.y - collection.tracked_boxes[a].y)/(dif*2);
-								collection.tracked_boxes[a].width += (all.width - collection.tracked_boxes[a].width)/(dif*80);
-								collection.tracked_boxes[a].height += (all.height - collection.tracked_boxes[a].height)/(dif*80);
-
-							
-							//~ if(dif < 1.5)
-							//~ {
-								
-								//~ collection.tracked_boxes[a].x += 2*(all.x - collection.tracked_boxes[a].x)/4;
-								//~ collection.tracked_boxes[a].y += 2*(all.y - collection.tracked_boxes[a].y)/4;
-								//~ collection.tracked_boxes[a].width += (all.width - collection.tracked_boxes[a].width)/20;
-								//~ collection.tracked_boxes[a].height += (all.height - collection.tracked_boxes[a].height)/20;
-							//~ }
-							//~ else
-							//~ {
-								//~ collection.tracked_boxes[b].x += (cur_boxes[a].x - collection.tracked_boxes[b].x)/(dif*5);
-								//~ collection.tracked_boxes[b].y += (cur_boxes[a].y - collection.tracked_boxes[b].y)/(dif*5);
-							//~ }
-						}
-						*/
-							
-								int ratio  = dif*5;
-								int factor = 60; 
-								int x_dif = (all.x - collection.tracked_boxes[a].x);
-								int y_dif = (all.y - collection.tracked_boxes[a].y);
-								int w_dif = (all.width - collection.tracked_boxes[a].width);
-								int h_dif = (all.height - collection.tracked_boxes[a].height);
-								//~ cout<<"x "<<x_dif<<endl;
-								//~ cout<<"t "<<y_dif<<endl;
-								//~ cout<<"w "<<w_dif<<endl;
-								//~ cout<<"h "<<h_dif<<endl;
-								//~ cout<<"d "<<dif<<endl;
-								//~ cout<<"rw "<<(w_dif*abs(x_dif)/factor)/dif<<endl;
-								//~ cout<<"rh "<<(h_dif*abs(y_dif)/factor)/dif<<endl;
-								collection.tracked_boxes[a].x += x_dif/ratio;
-								collection.tracked_boxes[a].y += y_dif/ratio;
-								collection.tracked_boxes[a].width += (w_dif*abs(x_dif))/(factor*ratio);
-								collection.tracked_boxes[a].height += (h_dif*abs(y_dif))/(factor*ratio);
-								if(collection.tracked_boxes[a].width < 0)
-									collection.tracked_boxes[a].width = 0;
-								if(collection.tracked_boxes[a].height < 0)
-									collection.tracked_boxes[a].height = 0;
+						
+					float thresh = 1;
+					float factor = 100; 
+					float power = float(collection.tracked_boxes[a].area())/float(all.area());
+					float ratio  = 1.5*exp(power);	
+					float x_dif = (all.x - collection.tracked_boxes[a].x);
+					float y_dif = (all.y - collection.tracked_boxes[a].y);
+					float w_dif = (all.width - collection.tracked_boxes[a].width);
+					float h_dif = (all.height - collection.tracked_boxes[a].height);
+					//~ cout<<"x "<<x_dif<<endl; 
+					//~ cout<<"t "<<y_dif<<endl;
+					//~ cout<<"w "<<w_dif<<endl;
+					//~ cout<<"h "<<h_dif<<endl;
+					//~ cout<<"d "<<dif<<endl;
+					//~ cout<<"rw "<<(w_dif*abs(x_dif))/(factor*ratio)<<endl;
+					//~ cout<<"rh "<<(h_dif*abs(y_dif)/factor)/dif<<endl;
+					collection.tracked_boxes[a].x += x_dif/(ratio);
+					collection.tracked_boxes[a].y += y_dif/(ratio);
+					collection.tracked_boxes[a].width +=  abs((w_dif*abs(x_dif))/(factor*ratio))  < thresh? 0 : (w_dif*pow(x_dif,1.2))/(factor*ratio);
+					collection.tracked_boxes[a].height += abs((h_dif*abs(y_dif))/(factor*ratio))  < thresh? 0 : (h_dif*pow(y_dif,1.2))/(factor*ratio);
+					if(collection.tracked_boxes[a].width < 0)
+						collection.tracked_boxes[a].width = 0;
+					if(collection.tracked_boxes[a].height < 0)
+						collection.tracked_boxes[a].height = 0;
 								
 					
 				}
@@ -541,7 +515,7 @@ void calculatePosition(Rect& rect, Position& pos, int width, int height, int Hfi
 		bottom     = depth * ver_y / hor_focal;
 		pos.top    = abs(top);
 		pos.height = abs(top - bottom);
-	
+		
 	}
 	
 }
