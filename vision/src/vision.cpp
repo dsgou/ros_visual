@@ -242,9 +242,8 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 				{
 						
 					float thresh = 1;
-					float factor = 100; 
-					float power = float(collection.tracked_boxes[a].area())/float(all.area());
-					float ratio  = 1.5*exp(power);	
+					float factor = 80; 
+					float power = 5*float(collection.tracked_boxes[a].area())/float(all.area());
 					float x_dif = (all.x - collection.tracked_boxes[a].x);
 					float y_dif = (all.y - collection.tracked_boxes[a].y);
 					float w_dif = (all.width - collection.tracked_boxes[a].width);
@@ -256,10 +255,10 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 					//~ cout<<"d "<<dif<<endl;
 					//~ cout<<"rw "<<(w_dif*abs(x_dif))/(factor*ratio)<<endl;
 					//~ cout<<"rh "<<(h_dif*abs(y_dif)/factor)/dif<<endl;
-					collection.tracked_boxes[a].x += x_dif/(ratio);
-					collection.tracked_boxes[a].y += y_dif/(ratio);
-					collection.tracked_boxes[a].width +=  abs((w_dif*abs(x_dif))/(factor*ratio))  < thresh? 0 : (w_dif*pow(x_dif,1.2))/(factor*ratio);
-					collection.tracked_boxes[a].height += abs((h_dif*abs(y_dif))/(factor*ratio))  < thresh? 0 : (h_dif*pow(y_dif,1.2))/(factor*ratio);
+					collection.tracked_boxes[a].x += x_dif/(power);
+					collection.tracked_boxes[a].y += y_dif/(power);
+					collection.tracked_boxes[a].width +=  abs((w_dif*abs(x_dif))/(factor*power))  < thresh? 0 : w_dif* abs(x_dif + 1)/(factor*(power + 1));
+					collection.tracked_boxes[a].height += abs((h_dif*abs(y_dif))/(factor*power))  < thresh? 0 : h_dif* abs(y_dif + 1)/(factor*(power + 1));
 					if(collection.tracked_boxes[a].width < 0)
 						collection.tracked_boxes[a].width = 0;
 					if(collection.tracked_boxes[a].height < 0)
