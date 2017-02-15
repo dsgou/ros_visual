@@ -67,7 +67,7 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 	int width 	 = (msg->width);
 	
 	//Detect moving blobs
-	detectBlobs(fusion, fusion_rects, 15, false);
+	detectBlobs(fusion, fusion_rects, 15, 1, false);
 	
 	//Track blobs
 	track(fusion_rects, people, width, height);
@@ -78,36 +78,31 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 	Position pos;
 	int rank  = -1;
 	int index = -1;
-	int end	  = people.tracked_rankings.size();
 	
-	for(int i = 0; i < end; i++)
+	vector<float>::iterator rank_it;
+	for(rank_it = people.tracked_rankings.begin(); rank_it < people.tracked_rankings.end();)
 	{
-		people.tracked_pos.push_back(pos);
-		if(people.tracked_rankings[i] > 3)
+		int dist = distance(people.tracked_rankings.begin(), rank_it);
+		if(*rank_it > 3)
 		{
-			//~ cout<<people.tracked_boxes[i].x<<" " <<people.tracked_boxes[i].y<<" "<<people.tracked_boxes[i].width<<" "<<people.tracked_boxes[i].height<<endl;
 			people.tracked_pos.push_back(pos);
-			//~ rectangle(chroma, people.tracked_boxes[i], 0, 1);
-			if(rank < people.tracked_rankings[i])
+			if(rank < *rank_it)
 			{
-				rank = people.tracked_rankings[i];
-				rect = people.tracked_boxes[i];
-				index = i;
+				rank = *rank_it;
+				rect = people.tracked_boxes[dist];
+				index = dist;
 			}
+			rank_it++;
 		}
 		else
 		{
-			people.tracked_boxes[i] = people.tracked_boxes.back();
-			people.tracked_boxes.pop_back();
-			people.tracked_rankings[i] = people.tracked_rankings.back();
-			people.tracked_rankings.pop_back();
-			i--;
-			end--;
+			rank_it = people.tracked_rankings.erase(rank_it);
+			people.tracked_boxes.erase(people.tracked_boxes.begin() + dist);
 		}
 	}
 	
-	cout<<"start "<<end<<endl;
-	for(int i = 0; i < end; i++)
+	cout<<"start "<<people.tracked_boxes.size()<<endl;
+	for(int i = 0; i < people.tracked_boxes.size(); i++)
 	{
 		//~ if (index == i)
 		//~ {
@@ -120,8 +115,7 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 		//~ }
 	}
 	
-	end	  = people.tracked_boxes.size();
-	for(int i = 0; i < end; i++)
+	for(int i = 0; i < people.tracked_boxes.size(); i++)
 	{
 		if(rect.width > 0 && depth_available)
 		{
@@ -183,12 +177,6 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 		//~ moveWindow("chroma", 0, 550);
 		waitKey(1);
 	}
-	//~ cout<<"X:  "<<people.tracked_pos[index].x<<endl;
-	//~ cout<<"Y:  "<<people.tracked_pos[index].y<<endl;
-	//~ cout<<"Depth:  "<<people.tracked_pos[index].z<<endl;
-	//~ cout<<"Height:  "<<people.tracked_pos[index].height<<endl;
-	//~ cout<<"Distance:  "<<people.tracked_pos[index].distance<<endl;
-	//~ cout<<endl;
 	
 	
 	//~ ros::Time time = cv_ptr_dif->header.stamp;

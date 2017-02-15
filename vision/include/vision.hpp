@@ -38,7 +38,7 @@ using namespace cv;
 	};
 		
 	//Detection and tracking of blobs
-	void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, bool detect_people);
+	void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, int subsampling, bool detect_people);
 	void track(vector< Rect_<int> >& current, People& collection, int width, int height, int rank = 3);
 	
 	//Depth estimation functions
