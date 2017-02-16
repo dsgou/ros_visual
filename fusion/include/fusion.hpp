@@ -54,7 +54,7 @@ class Fusion_processing
 		image_transport::Subscriber depth_sub;
 
   	
-		Mat depth;
+		Mat depth_Mat;
 		Mat back_Mat;
 		vector<Mat> depth_storage;
 		vector< Rect_<int> > depth_rects;

@@ -25,8 +25,10 @@ using namespace cv;
 		float x = 0.0;
 		float y = 0.0;
 		float z = 0.0;
-		float top = 0.0;
-		float height = 0.0;
+		float top  	   = 0.0;
+		float area 	   = 0.0;
+		float ratio    = 0.0;
+		float height   = 0.0;
 		float distance = 0.0;
 	};
 	
@@ -48,7 +50,7 @@ using namespace cv;
 	double combineDepth(double saveMin, double saveCenter, double saveCluster, double min_depth = 0.0, double max_depth = 6.0);
 		
 	//Position estimation
-	void calculatePosition(Rect& rect, Position& pos, int width = 640, int height = 480, int Hfield = 58, int Vfield = 45);
+	void calculatePosition(Rect& rect, Position& pos, float depth, int width = 640, int height = 480, int Hfield = 58, int Vfield = 45);
 	
 	//Region growing algorithms
 	void upVerticalFill(Mat& src, float threshold, bool flag);

@@ -5,7 +5,7 @@ Chroma_processing::Chroma_processing()
 {
 	//Getting the parameters specified by the launch file 
 	ros::NodeHandle local_nh("~");
-	local_nh.param("image_topic"		 , image_topic		   ,string("/camera/rgb/image_raw"));
+	local_nh.param("image_topic"		 , image_topic		   , string("/camera/rgb/image_raw"));
 	local_nh.param("image_out_topic"	 , image_out_topic	   , string("/chroma_proc/image"));
 	local_nh.param("image_out_dif_topic" , image_out_dif_topic , string("/chroma_proc/image_dif"));
 	local_nh.param("project_path"		 , path_  			   , string(""));
