@@ -30,6 +30,10 @@ using namespace cv;
 		float ratio    = 0.0;
 		float height   = 0.0;
 		float distance = 0.0;
+		float area_diff = 0.0;
+		float ratio_diff = 0.0;
+		float distance_diff = 0.0;
+		
 	};
 	
 	struct People 

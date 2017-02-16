@@ -78,17 +78,14 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 	for(rank_it = people.tracked_rankings.begin(); rank_it < people.tracked_rankings.end();)
 	{
 		int dist = distance(people.tracked_rankings.begin(), rank_it);
-		if(*rank_it > 3)
-		{
-			Position pos;
-			people.tracked_pos.push_back(pos);
-			rank_it++;
-		}
-		else
+		if(*rank_it <= 3)
 		{
 			rank_it = people.tracked_rankings.erase(rank_it);
+			people.tracked_pos.erase(people.tracked_pos.begin() + dist);
 			people.tracked_boxes.erase(people.tracked_boxes.begin() + dist);
 		}
+		else
+			rank_it++;
 	}
 	
 	//Calculate depth, position and features of tracked boxes
@@ -120,8 +117,8 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 			}
 		}
 		
-		people.tracked_pos[i].area = people.tracked_boxes[i].width*people.tracked_boxes[i].height;
-		people.tracked_pos[i].ratio = float(people.tracked_boxes[i].height)/float(people.tracked_boxes[i].width);
+		
+		
 	}
 	
 	
@@ -214,10 +211,13 @@ void Fusion_processing::writeCSV(People& collection, string path, ros::Time time
 					<<pos.y<<"\t"
 					<<pos.z<<"\t"
 					<<pos.area<<"\t"
+					<<pos.area_diff<<"\t"
 					<<pos.ratio<<"\t"
+					<<pos.ratio_diff<<"\t"
 					<<pos.top<<"\t"
 					<<pos.height<<"\t"
-					<<pos.distance<<
+					<<pos.distance<<"\t"
+					<<pos.distance_diff<<
 				endl;
 			}
 			else
@@ -269,7 +269,12 @@ void Fusion_processing::publishResults(People& collection, ros::Time time){
 			box_.pos.z = pos.z;
 			box_.pos.top = pos.top;
 			box_.pos.height = pos.height;
+			box_.pos.area = pos.area;
+			box_.pos.area_diff = pos.area_diff;
+			box_.pos.ratio = pos.ratio;
+			box_.pos.ratio_diff = pos.ratio_diff;
 			box_.pos.distance = pos.distance;
+			box_.pos.distance_diff = pos.distance_diff;
 			fmsg.boxes.push_back(box_);
 		}
 		results_publisher.publish(fmsg);

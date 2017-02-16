@@ -215,12 +215,16 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 			//The reposition rules
 			if(all.area() > 0)
 			{
+				float x_new;
+				float y_new;
+				float w_new;
+				float h_new;
 				if(all.area() > collection.tracked_boxes[a].area())
 				{
-					collection.tracked_boxes[a].x = (all.x + collection.tracked_boxes[a].x)/2;
-					collection.tracked_boxes[a].y = (all.y  + collection.tracked_boxes[a].y)/2;
-					collection.tracked_boxes[a].width = (all.width + collection.tracked_boxes[a].width)/2;
-					collection.tracked_boxes[a].height = (all.height + collection.tracked_boxes[a].height)/2;
+					x_new = (all.x + collection.tracked_boxes[a].x)/2;
+					y_new = (all.y  + collection.tracked_boxes[a].y)/2;
+					w_new = (all.width + collection.tracked_boxes[a].width)/2;
+					h_new = (all.height + collection.tracked_boxes[a].height)/2;
 				}
 				else
 				{
@@ -232,17 +236,45 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 					float y_dif = (all.y - collection.tracked_boxes[a].y);
 					float w_dif = (all.width - collection.tracked_boxes[a].width);
 					float h_dif = (all.height - collection.tracked_boxes[a].height);
-					collection.tracked_boxes[a].x += x_dif/(power);
-					collection.tracked_boxes[a].y += y_dif/(power);
-					collection.tracked_boxes[a].width +=  abs((w_dif*(abs(x_dif) + abs(y_dif) + 1))/(factor*(power + 1)))  < thresh? 0 : w_dif* (abs(x_dif) + abs(y_dif) + 1)/(factor*(power + 1));
-					collection.tracked_boxes[a].height += abs((h_dif*(abs(x_dif) + abs(y_dif) + 1))/(factor*(power + 1)))  < thresh? 0 : h_dif* (abs(x_dif) + abs(y_dif) + 1)/(factor*(power + 1));
-					if(collection.tracked_boxes[a].width < 0)
-						collection.tracked_boxes[a].width = 0;
-					if(collection.tracked_boxes[a].height < 0)
-						collection.tracked_boxes[a].height = 0;
-								
+					x_new = collection.tracked_boxes[a].x + x_dif/(power);
+					y_new = collection.tracked_boxes[a].y + y_dif/(power);
+					w_new = collection.tracked_boxes[a].width  + (abs((w_dif*(abs(x_dif) + abs(y_dif) + 1))/(factor*(power + 1)))  < thresh? 0 : w_dif* (abs(x_dif) + abs(y_dif) + 1)/(factor*(power + 1)));
+					h_new = collection.tracked_boxes[a].height + (abs((h_dif*(abs(x_dif) + abs(y_dif) + 1))/(factor*(power + 1)))  < thresh? 0 : h_dif* (abs(x_dif) + abs(y_dif) + 1)/(factor*(power + 1)));
 					
+					if(w_new < 0)
+						w_new = 0;
+					if(h_new < 0)
+						h_new = 0;
 				}
+				
+				//Calculate features and diffs
+				//****************************
+				//Distance feature
+				int x1 = (x_new + w_new/2);
+				int y1 = (y_new + h_new/2);
+				int x2 = (collection.tracked_boxes[a].x + collection.tracked_boxes[a].width/2);
+				int y2 = (collection.tracked_boxes[a].y + collection.tracked_boxes[a].height/2);
+				float distance = sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
+				collection.tracked_pos[a].distance_diff = distance - collection.tracked_pos[a].distance;
+				collection.tracked_pos[a].distance      = distance;
+				
+				//Area feature
+				int area = w_new*h_new;
+				collection.tracked_pos[a].area_diff = area - collection.tracked_pos[a].area;
+				collection.tracked_pos[a].area      = area;
+				
+				//Ratio feature
+				float ratio = float(collection.tracked_boxes[a].height)/float(collection.tracked_boxes[a].width);
+				collection.tracked_pos[a].ratio_diff = ratio - collection.tracked_pos[a].ratio;
+				collection.tracked_pos[a].ratio      = ratio;
+				//***************************
+				
+				//assign the new values
+				collection.tracked_boxes[a].x 	   = x_new;
+				collection.tracked_boxes[a].y  	   = y_new;
+				collection.tracked_boxes[a].width  = w_new;
+				collection.tracked_boxes[a].height = h_new;
+				
 				updates.at(a) = true;	
 			}
 			
@@ -250,6 +282,8 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 		}
 		for(int a = 0; a < cur_boxes.size(); a++) 
 		{
+			Position pos;
+			collection.tracked_pos.push_back(pos);
 			collection.tracked_boxes.push_back(cur_boxes[a]);
 			collection.tracked_rankings.push_back(rank + step);
 		}
@@ -308,6 +342,9 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 						
 						collection.tracked_rankings[b] = collection.tracked_rankings.back();
 						collection.tracked_rankings.pop_back();
+						
+						collection.tracked_pos[b] = collection.tracked_pos.back();
+						collection.tracked_pos.pop_back();
 						b=a;
 						end--;
 					}
@@ -342,12 +379,15 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 			if(*rank_it <= 0 || collection.tracked_boxes[dist].area() <= 0)
 			{
 				rank_it = collection.tracked_rankings.erase(rank_it);
+				collection.tracked_pos.erase(collection.tracked_pos.begin() + dist);
 				collection.tracked_boxes.erase(collection.tracked_boxes.begin() + dist);
 			}
 			else
 				rank_it++;
 			
 		}
+		
+		
 		
 	}
 }
@@ -404,12 +444,6 @@ void calculatePosition(Rect& rect, Position& pos, float depth, int width, int he
 		hor_y = depth * ver_y / hor_focal;
 		hor_x = depth * ver_x / ver_focal;
 		
-		if(pos.x != 0)
-		{
-			
-			distance = sqrt(pow(pos.x - hor_x, 2) + pow(pos.y - hor_y, 2) + pow(pos.z - depth, 2));
-			pos.distance = distance;
-		}
 		
 		//Update the position
 		pos.x = hor_x;

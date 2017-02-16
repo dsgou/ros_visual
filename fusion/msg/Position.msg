@@ -3,4 +3,9 @@ float32 y
 float32 z
 float32 top
 float32 height
+float32 area 
+float32 area_diff
+float32 ratio 
+float32 ratio_diff
 float32 distance
+float32 distance_diff

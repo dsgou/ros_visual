@@ -4,7 +4,7 @@ project_path    : find(ros_visual)
 image_topic     : "/chroma_proc/image"
 image_dif_topic : "/chroma_proc/image_dif"
 depth_topic     : "/depth_proc/image"
-csv_fields      : "Timestamp\tRect_id\tRect_x\tRect_y\tRect_W\tRect_H\tMeter_X\tMeter_Y\tMeter_Z\tArea\tBox_Ratio\tTop\tHeight\tDistance"
+csv_fields      : "Timestamp\tRect_id\tRect_x\tRect_y\tRect_W\tRect_H\tMeter_X\tMeter_Y\tMeter_Z\tArea\tArea_diff\tBox_Ratio\tBox_Ratio_diff\tTop\tHeight\tDistance\tDistance_diff"
 min_depth       : 0
 max_depth       : 6000
 playback_topics : false
