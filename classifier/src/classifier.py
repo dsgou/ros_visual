@@ -9,8 +9,8 @@ from std_msgs.msg import String
 from fusion.msg import FusionMsg
 from pyAudioAnalysis import audioTrainTest
 
-global SVM, Mean, Std, ClassNames, counter, dicti, fps
-dicti = {'walk': 0, 'stand': 0, 'sit': 0, 'sit2stand' : 0, 'lie':0}
+global SVM, Mean, Std, ClassNames, counter, dicti, fps, publisher, events
+
 counter = 0
 
 '''
@@ -42,28 +42,38 @@ def loadSVModel(SVMmodelName):
 
 
 def callback(data):
-    global SVM, Mean, Std, ClassNames, counter, dicti, fps
-    #~ print data.boxes[0].pos
+    global SVM, Mean, Std, ClassNames, counter, dicti, fps, publisher
+    
+    #Classify
     fv = numpy.array([data.boxes[0].pos.area, data.boxes[0].pos.area_diff, data.boxes[0].pos.ratio, data.boxes[0].pos.ratio_diff, data.boxes[0].pos.distance, data.boxes[0].pos.distance_diff])
     curFV = (fv - Mean) / Std                
-    [Result, P] = audioTrainTest.classifierWrapper(SVM, "svm", curFV)    # classification 
-    #~ print ClassNames[int(Result)]
+    [Result, P] = audioTrainTest.classifierWrapper(SVM, "svm", curFV) 
+
     
     dicti[ClassNames[int(Result)]] += 1
     counter += 1
     if counter == fps:
-        print max(dicti.iteritems(), key=operator.itemgetter(1))[0]
+        m = max(dicti.iteritems(), key=operator.itemgetter(1))[0]
+        print m
+        publisher.publish(m)
         counter = 0
-        dicti = {'walk': 0, 'stand': 0, 'sit': 0, 'sit2stand' : 0, 'lie':0}
+        for key, value in dicti.iteritems():
+            dicti[key] = 0
     #~ print Mean
     #~ print curFV 
 
 if __name__ == '__main__':
-    global SVM, Mean, Std, ClassNames, fps
+    global SVM, Mean, Std, ClassNames, fps, publisher, dicti
     rospy.init_node('classifier')
     svm_path = rospy.get_param('~svm_path')
     input_topic = rospy.get_param('~input_topic')
     fps = rospy.get_param('~fps')
+    events = rospy.get_param('~events')
+    dicti = {}
+    for e in events.split(' '):
+        dicti[e] = 0
+    print dicti
+    publisher = rospy.Publisher('/classifier/result', String, queue_size = 1)
     rospy.Subscriber(input_topic, FusionMsg, callback)
     (SVM, Mean, Std, ClassNames) = loadSVModel(svm_path)
     rospy.spin()
