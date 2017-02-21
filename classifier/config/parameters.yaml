@@ -1,0 +1,3 @@
+svm_path    : "/home/dimitris/catkin_ws/src/ros_visual/classifier/include/4classSit2Stand"
+input_topic : "fusion/results"
+fps         : 30

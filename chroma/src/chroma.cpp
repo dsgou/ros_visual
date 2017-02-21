@@ -100,7 +100,7 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 	if(display)
 	{
 		//Blob detection
-		detectBlobs(dif_rgb, rgb_rects, 15, false);
+		detectBlobs(dif_rgb, rgb_rects, 15, 1, false);
 		
 		Mat temp = dif_rgb.clone();
 	    for(Rect rect: rgb_rects)
