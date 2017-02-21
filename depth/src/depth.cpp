@@ -7,24 +7,24 @@ Depth_processing::Depth_processing()
     //Getting the parameters specified by the launch file 
     ros::NodeHandle local_nh("~");
     local_nh.param("depth_topic"		, depth_topic		, string("/camera/depth/image_raw"));
-    local_nh.param("depth_out_image_topic"  , depth_out_image_topic , string("/depth_proc/image"));
+    local_nh.param("depth_out_image_topic"	, depth_out_image_topic , string("/depth_proc/image"));
     local_nh.param("project_path"		,path_			, string(""));
-    local_nh.param("playback_topics"	, playback_topics	,false);
-    local_nh.param("display"		, display		, false);
-    local_nh.param("max_depth"		, max_depth		, DEPTH_MAX);
-    local_nh.param("min_depth"		, min_depth		, DEPTH_MIN);
+    local_nh.param("playback_topics"		, playback_topics	,false);
+    local_nh.param("display"			, display		, false);
+    local_nh.param("max_depth"			, max_depth		, DEPTH_MAX);
+    local_nh.param("min_depth"			, min_depth		, DEPTH_MIN);
     
     if(playback_topics)
     {
 	ROS_INFO_STREAM_NAMED("Depth_processing","Subscribing at compressed topics \n"); 
 			
-	depth_sub = it_.subscribe(depth_topic, 10, 
+	depth_sub = it_.subscribe(depth_topic, 1, 
 	   &Depth_processing::depthCb, this, image_transport::TransportHints("compressedDepth"));
     }
     else	  
-	depth_sub = it_.subscribe(depth_topic, 10, &Depth_processing::depthCb, this);
+	depth_sub = it_.subscribe(depth_topic, 1, &Depth_processing::depthCb, this);
 	
-    depth_pub = it_.advertise(depth_out_image_topic, 100);
+    depth_pub = it_.advertise(depth_out_image_topic, 1);
 }
 
 Depth_processing::~Depth_processing()
@@ -153,16 +153,16 @@ void Depth_processing::depthCb(const sensor_msgs::ImageConstPtr& msg)
 
     
     Mat back_depth;
-estimateBackground(cur_depth, back_depth, depth_storage, 100, 0.025);
+    estimateBackground(cur_depth, back_depth, depth_storage, 100, 0.025);
 
-Mat back_dif = cur_depth.clone();
-estimateForeground(cur_depth, back_depth, back_dif);
-    
-//~ adaptiveThreshold(back_dif, back_dif, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 15, -5);
-//~ medianBlur(back_dif, back_dif, 3);
+    Mat back_dif = cur_depth.clone();
+    estimateForeground(cur_depth, back_depth, back_dif);
+	
+    //~ adaptiveThreshold(back_dif, back_dif, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 15, -5);
+    //~ medianBlur(back_dif, back_dif, 3);
 
-vector< Rect_<int> > back_dif_rects;
-detectBlobs(back_dif, back_dif_rects, 3);
+    vector< Rect_<int> > back_dif_rects;
+    detectBlobs(back_dif, back_dif_rects, 3);
 
     imshow("back_dif", back_dif);
     moveWindow("back_dif", 645, 550);

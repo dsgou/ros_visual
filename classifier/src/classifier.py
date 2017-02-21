@@ -65,15 +65,16 @@ def callback(data):
 if __name__ == '__main__':
     global SVM, Mean, Std, ClassNames, fps, publisher, dicti
     rospy.init_node('classifier')
-    svm_path = rospy.get_param('~svm_path')
+    fps         = rospy.get_param('~fps')
+    events      = rospy.get_param('~events')
+    svm_path    = rospy.get_param('~svm_path')
+    path        = rospy.get_param('~classifier_path')
     input_topic = rospy.get_param('~input_topic')
-    fps = rospy.get_param('~fps')
-    events = rospy.get_param('~events')
+    
     dicti = {}
     for e in events.split(' '):
         dicti[e] = 0
-    print dicti
     publisher = rospy.Publisher('/classifier/result', String, queue_size = 1)
     rospy.Subscriber(input_topic, FusionMsg, callback)
-    (SVM, Mean, Std, ClassNames) = loadSVModel(svm_path)
+    (SVM, Mean, Std, ClassNames) = loadSVModel(path + svm_path)
     rospy.spin()

@@ -16,15 +16,15 @@ Chroma_processing::Chroma_processing()
 	{
 		ROS_INFO_STREAM_NAMED("Chroma_processing","Subscribing at compressed topics \n"); 
 		
-		image_sub = it_.subscribe(image_topic, 10, 
+		image_sub = it_.subscribe(image_topic, 1, 
 		  &Chroma_processing::imageCb, this, image_transport::TransportHints("compressed"));
     }
     else
-		image_sub = it_.subscribe(image_topic, 10, &Chroma_processing::imageCb, this);
+		image_sub = it_.subscribe(image_topic, 1, &Chroma_processing::imageCb, this);
 		
 	
-	image_pub 	  = it_.advertise(image_out_topic, 100); 
-	image_pub_dif = it_.advertise(image_out_dif_topic, 100); 
+	image_pub 	  = it_.advertise(image_out_topic, 1); 
+	image_pub_dif = it_.advertise(image_out_dif_topic, 1); 
 }
 
 Chroma_processing::~Chroma_processing()

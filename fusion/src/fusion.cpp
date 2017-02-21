@@ -27,10 +27,10 @@ Fusion_processing::Fusion_processing()
 		depth_topic += "/compressedDepth";
     } 
 	
-    image_sub = it_.subscribe(image_dif_topic, 10, &Fusion_processing::chromaCb, this);
-    depth_sub = it_.subscribe(depth_topic, 10, &Fusion_processing::depthCb, this);
+    image_sub = it_.subscribe(image_dif_topic, 1, &Fusion_processing::chromaCb, this);
+    depth_sub = it_.subscribe(depth_topic, 1, &Fusion_processing::depthCb, this);
     
-    results_publisher = local_nh.advertise<fusion::FusionMsg>(results_topic, 100);
+    results_publisher = local_nh.advertise<fusion::FusionMsg>(results_topic, 1);
 	
 	if(create_directory)
     {
