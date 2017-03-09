@@ -52,7 +52,7 @@ class Fusion_processing
 		image_transport::ImageTransport it_;
 		image_transport::Subscriber image_sub;
 		image_transport::Subscriber depth_sub;
-
+		ros::Time previous_time;
   	
 		Mat depth_Mat;
 		Mat back_Mat;

@@ -246,28 +246,42 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 					if(h_new < 0)
 						h_new = 0;
 				}
-				
-				//Calculate features and diffs
+				//Calculate features and diffs not normalized
 				//****************************
-				//Distance feature
-				int x1 = (x_new + w_new/2);
-				int y1 = (y_new + h_new/2);
-				int x2 = (collection.tracked_boxes[a].x + collection.tracked_boxes[a].width/2);
-				int y2 = (collection.tracked_boxes[a].y + collection.tracked_boxes[a].height/2);
-				float distance = sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
-				collection.tracked_pos[a].distance_diff = distance - collection.tracked_pos[a].distance;
-				collection.tracked_pos[a].distance      = distance;
-				
-				//Area feature
-				int area = w_new*h_new;
-				collection.tracked_pos[a].area_diff = area - collection.tracked_pos[a].area;
-				collection.tracked_pos[a].area      = area;
 				
 				//Ratio feature
 				float ratio = float(collection.tracked_boxes[a].height)/float(collection.tracked_boxes[a].width);
 				collection.tracked_pos[a].ratio_diff = ratio - collection.tracked_pos[a].ratio;
 				collection.tracked_pos[a].ratio      = ratio;
-				//***************************
+				
+				//Area feature
+				float area = w_new*h_new;
+				collection.tracked_pos[a].area_diff = area - collection.tracked_pos[a].area;
+				collection.tracked_pos[a].area      = area;
+				
+				//x_diff and y_diff
+				float x_diff = (x_new - collection.tracked_boxes[a].x)/area;
+				float y_diff = (y_new - collection.tracked_boxes[a].y)/area;
+				collection.tracked_pos[a].x_delta = x_diff - collection.tracked_pos[a].x_diff;
+				collection.tracked_pos[a].y_delta = y_diff - collection.tracked_pos[a].y_diff;
+				collection.tracked_pos[a].x_diff  = x_diff;
+				collection.tracked_pos[a].y_diff  = y_diff;
+				
+				//y_norm
+				float y_norm = y_new/area;
+				collection.tracked_pos[a].y_norm_diff = y_norm - collection.tracked_pos[a].y_norm;
+				collection.tracked_pos[a].y_norm 	  = y_norm;
+				
+				//Distance feature
+				int x1 = (x_new + w_new/2);
+				int y1 = (y_new + h_new/2);
+				int x2 = (collection.tracked_boxes[a].x + collection.tracked_boxes[a].width/2);
+				int y2 = (collection.tracked_boxes[a].y + collection.tracked_boxes[a].height/2);
+				float distance = sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2))/area;
+				collection.tracked_pos[a].distance_diff = distance - collection.tracked_pos[a].distance;
+				collection.tracked_pos[a].distance      = distance;
+				
+				
 				
 				//assign the new values
 				collection.tracked_boxes[a].x 	   = x_new;
@@ -275,6 +289,7 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 				collection.tracked_boxes[a].width  = w_new;
 				collection.tracked_boxes[a].height = h_new;
 				
+				//***************************
 				updates.at(a) = true;	
 			}
 			
@@ -573,10 +588,8 @@ void estimateBackground(Mat& src, Mat& dst, vector<Mat>& storage, int recursion,
  */
 void frameDif(Mat& src1, Mat& src2, Mat& dst, float thresh)
 {
-	// Absolute dif between our current mat and the previous one 
 	absdiff(src1, src2, dst);
 	threshold(dst, dst, thresh, 255, 0);
-	
 }
 
 /* Image gamma correction 

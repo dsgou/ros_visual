@@ -1,5 +1,4 @@
 depth_out_image_topic: "/depth_proc/image"
-playback_topics      : false
 hor_field            : 58
 ver_field            : 45
 depth_width          : 640

@@ -1,4 +1,4 @@
-svm_path    : "/include/FullFInalModel"
+svm_path    : "/include/FinalFull2"
 input_topic : "fusion/results"
 fps         : 30
-events      : "other walk stand sit sit2stand lie"
+events      : "sit stand walk lie stand2sit sit2lie"

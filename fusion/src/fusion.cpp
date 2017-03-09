@@ -23,12 +23,15 @@ Fusion_processing::Fusion_processing()
 	if(playback_topics)
 	{
 		ROS_INFO_STREAM_NAMED("Fusion_processing","Subscribing at compressed topics \n"); 
-		image_topic += "/compressed";
-		depth_topic += "/compressedDepth";
+		depth_sub = it_.subscribe(depth_topic, 1, &Fusion_processing::depthCb, this, image_transport::TransportHints("compressed"));
     } 
+    else
+    {
+		depth_sub = it_.subscribe(depth_topic, 1, &Fusion_processing::depthCb, this);
+	}
 	
     image_sub = it_.subscribe(image_dif_topic, 1, &Fusion_processing::chromaCb, this);
-    depth_sub = it_.subscribe(depth_topic, 1, &Fusion_processing::depthCb, this);
+    
     
     results_publisher = local_nh.advertise<fusion::FusionMsg>(results_topic, 1);
 	
@@ -159,13 +162,13 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 	
 	//~ ros::Time time = cv_ptr_dif->header.stamp;
 	ros::Time time = ros::Time::now();
-
 	//Write csv file
 	if(write_csv)
 		writeCSV(people, session_path, time);
 
 	//Publish results
 	publishResults(people, time);
+	previous_time = time;
 }
 
 void Fusion_processing::depthCb(const sensor_msgs::ImageConstPtr& msg)
@@ -193,6 +196,7 @@ void Fusion_processing::writeCSV(People& collection, string path, ros::Time time
 	ofstream storage(path + "/fusion.csv" ,ios::out | ios::app );
 	if (!collection.tracked_boxes.empty())
 	{
+		float time_interval  = (time - previous_time).toSec();
 		for(int i = 0; i < collection.tracked_boxes.size(); i++) 
 		{
 			float rank = collection.tracked_rankings[i];
@@ -210,14 +214,20 @@ void Fusion_processing::writeCSV(People& collection, string path, ros::Time time
 					<<pos.x<<"\t"
 					<<pos.y<<"\t"
 					<<pos.z<<"\t"
-					<<pos.area<<"\t"
-					<<pos.area_diff<<"\t"
-					<<pos.ratio<<"\t"
-					<<pos.ratio_diff<<"\t"
 					<<pos.top<<"\t"
 					<<pos.height<<"\t"
-					<<pos.distance<<"\t"
-					<<pos.distance_diff<<
+					<<pos.area<<"\t"
+					<<pos.area_diff/time_interval<<"\t"
+					<<pos.ratio<<"\t"
+					<<pos.ratio_diff/time_interval<<"\t"
+					<<pos.distance/time_interval<<"\t"
+					<<pos.distance_diff/time_interval<<"\t"
+					<<pos.x_diff/time_interval<<"\t"
+					<<pos.x_delta/time_interval<<"\t"
+					<<pos.y_diff/time_interval<<"\t"
+					<<pos.y_delta/time_interval<<"\t"
+					<<pos.y_norm<<"\t"
+					<<pos.y_norm_diff/time_interval<<
 				endl;
 			}
 			else

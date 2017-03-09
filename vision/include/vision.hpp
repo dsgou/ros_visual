@@ -28,11 +28,19 @@ using namespace cv;
 		float top  	   = 0.0;
 		float area 	   = 0.0;
 		float ratio    = 0.0;
+		float y_norm   = 0.0;
 		float height   = 0.0;
 		float distance = 0.0;
-		float area_diff = 0.0;
-		float ratio_diff = 0.0;
+		
+		float x_diff         = 0.0;
+		float y_diff        = 0.0;
+		float area_diff     = 0.0;
+		float y_norm_diff	= 0.0;
+		float ratio_diff    = 0.0;
 		float distance_diff = 0.0;
+		
+		float x_delta   = 0.0;
+		float y_delta   = 0.0;
 		
 	};
 	
