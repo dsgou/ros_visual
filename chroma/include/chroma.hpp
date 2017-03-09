@@ -52,9 +52,13 @@ class Chroma_processing
 		bool display;
 		bool has_image = false;
 		
+		int rows;
+		int cols;
+		int size;
+		int channels;
 		int interval = 5;
-		int frameCounter = -1, myThreshold = 100;
-		
+		int frameCounter = -1;
+		int myThreshold  = 100;
 		float backFactor = 0.80;
 		
 		long curTime ;

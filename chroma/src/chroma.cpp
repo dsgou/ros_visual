@@ -44,10 +44,6 @@ Chroma_processing::~Chroma_processing()
 void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 {
 	
-	int rows;
-	int cols;
-	int channels;
-	int size;
 	cv_bridge::CvImagePtr cv_ptr;
 	
 	try
@@ -84,32 +80,36 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 		channels = cur_rgb.channels();
 		size 	 = rows*cols*channels;
 		ref_rgb  = cur_rgb.clone();
+		
 	}
 	
 	//Calculating image difference between the current and previous images
 	frameDif(cur_rgb, ref_rgb, dif_rgb, 255*0.33);
 	
-	for(int y = 0; y < rows; y++)
+
+	for(int y = 0; y < 1; y++)
 	{
 		uchar* cur = cur_rgb.ptr<uchar>(y);
 		uchar* ref = ref_rgb.ptr<uchar>(y);
-		for(int x = 0; x < cols; x ++)
-			ref[x] = cur[x]*(1-backFactor)+ ref[x]*backFactor; 
+		for(int x = 0; x < size; x++)
+		{
+			ref[x] = cur[x]*(1-backFactor)+ ref[x]*backFactor;
+		} 
 	}
 	
 	if(display)
 	{
 		//Blob detection
-		detectBlobs(dif_rgb, rgb_rects, 15, 1, false);
+		//~ detectBlobs(dif_rgb, rgb_rects, 15, 1, false);
 		
-		Mat temp = dif_rgb.clone();
-	    for(Rect rect: rgb_rects)
-			rectangle(temp, rect, 255, 1);
-		rgb_rects.clear();
+		//~ Mat temp = dif_rgb.clone();
+	    //~ for(Rect rect: rgb_rects)
+			//~ rectangle(temp, rect, 255, 1);
+		//~ rgb_rects.clear();
 		
 		//Display
-		//~ imshow("dif_rgb", temp);
-		//~ moveWindow("dif_rgb", 0, 0);
+		imshow("dif_rgb", ref_rgb);
+		moveWindow("dif_rgb", 0, 0);
 		imshow("cur_rgb", cur_rgb);
 		moveWindow("cur_rgb", 645, 0);
 		waitKey(1);
