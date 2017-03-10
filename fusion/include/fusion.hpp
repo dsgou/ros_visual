@@ -72,6 +72,7 @@ class Fusion_processing
 		
 		bool playback_topics;
 		bool display;
+		bool use_depth;
 		bool create_directory;
 		bool write_csv;
 		bool has_image = false;

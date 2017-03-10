@@ -2,10 +2,11 @@
 <launch>
 
 	<arg name="project_path" 	default="$(find ros_visual)" 	 />
-	<arg name="image_topic"  	default="/camera/rgb/image_raw"  />
-	<arg name="depth_topic"  	default="/camera/depth/image_raw"/>
+	<arg name="image_topic"  	default="/radio_cam/rgb/image_raw"  />
+	<arg name="depth_topic"  	default="/radio_cam/depth/image_raw"/>
 	<arg name="display"  		default="false" 				 />
 	<arg name="compressed" 		default="false" 				 />
+	<arg name="use_depth" 		default="false" 				 />
 	
 	<node pkg="chroma" type="chroma" name="chroma" output="screen">
 		<rosparam file="$(find chroma)/config/parameters.yaml" command="load" />
@@ -14,20 +15,23 @@
 		<param name="image_topic"     value="$(arg image_topic)"/>
 		<param name="display" 	      value="$(arg display)"    />
 	</node>
-
-	<node pkg="depth" type="depth" name="depth" output="screen" >
-		<rosparam file="$(find depth)/config/parameters.yaml" command="load" />
-		<param name="project_path"    value="$(find ros_visual)" 	  />
-		<param name="playback_topics" value="$(arg compressed)"  	  />
-		<param name="depth_topic"     value="/camera/depth/image_raw" />
-		<param name="display"  	      value="$(arg display)" 		  />
-	</node>	
+	
+	<group if="$(arg use_depth)">
+		<node pkg="depth" type="depth" name="depth" output="screen" >
+			<rosparam file="$(find depth)/config/parameters.yaml" command="load" />
+			<param name="project_path"    value="$(find ros_visual)" 	  />
+			<param name="playback_topics" value="$(arg compressed)"  	  />
+			<param name="depth_topic"     value="$(arg depth_topic)" 	  />
+			<param name="display"  	      value="$(arg display)" 		  />
+		</node>	
+	</group>
 
 	<node pkg="fusion" type="fusion" name="fusion" output="screen">
 		<rosparam file="$(find fusion)/config/parameters.yaml" command="load" />
 		<param name="playback_topics" value="$(arg compressed)"  />
 		<param name="project_path"    value="$(find ros_visual)" />
-		<param name="display" 		  value="$(arg display)"     />
+		<param name="display" 		  value="true"     />
+		<param name="use_depth" 	  value="$(arg use_depth)"     />
 	</node>
 
 	<node pkg="classifier" type="classifier.py" name="classifier" output="screen">

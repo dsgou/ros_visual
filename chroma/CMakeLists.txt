@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   vision
 )
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 2 REQUIRED)
 
 catkin_package()
 
@@ -21,7 +21,6 @@ aux_source_directory(src/ SRC_LIST)
 include_directories(
   include
   /usr/include/
-  /usr/include/libalglib/
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
   ${vision_INCLUDE_DIRS}

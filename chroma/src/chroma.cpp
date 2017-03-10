@@ -43,7 +43,6 @@ Chroma_processing::~Chroma_processing()
  */
 void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 {
-	
 	cv_bridge::CvImagePtr cv_ptr;
 	
 	try
@@ -58,14 +57,13 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 
 	cur_rgb = (cv_ptr->image).clone();
 	
-	
 	//~ equalizeHist( cur_rgb, cur_rgb );
 	//~ cur_rgb.convertTo(cur_rgb, -1, 1.2, 0);
 	Ptr<CLAHE> clahe = createCLAHE();
 	clahe->setClipLimit(1.5);
 	clahe->setTilesGridSize(Size(10, 10));
-	gammaCorrection(cur_rgb);
-	clahe->apply(cur_rgb,cur_rgb);
+	gammaCorrection(cur_rgb, 2.5);
+	clahe->apply(cur_rgb, cur_rgb);
 	
 	// contrast fix
 	
@@ -85,7 +83,6 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 	
 	//Calculating image difference between the current and previous images
 	frameDif(cur_rgb, ref_rgb, dif_rgb, 255*0.33);
-	
 
 	for(int y = 0; y < 1; y++)
 	{
@@ -96,7 +93,6 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 			ref[x] = cur[x]*(1-backFactor)+ ref[x]*backFactor;
 		} 
 	}
-	
 	if(display)
 	{
 		//Blob detection

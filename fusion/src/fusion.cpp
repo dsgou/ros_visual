@@ -17,19 +17,22 @@ Fusion_processing::Fusion_processing()
 	local_nh.param("create_directory", create_directory , false);
 	local_nh.param("write_csv"		 , write_csv 		, false);
 	local_nh.param("display"		 , display 			, false);
+	local_nh.param("use_depth"		 , use_depth		, true);
 	local_nh.param("max_depth"		 , max_depth 		, DEPTH_MAX);
 	local_nh.param("min_depth"		 , min_depth 		, DEPTH_MIN);
-
-	if(playback_topics)
-	{
-		ROS_INFO_STREAM_NAMED("Fusion_processing","Subscribing at compressed topics \n"); 
-		depth_sub = it_.subscribe(depth_topic, 1, &Fusion_processing::depthCb, this, image_transport::TransportHints("compressed"));
-    } 
-    else
-    {
-		depth_sub = it_.subscribe(depth_topic, 1, &Fusion_processing::depthCb, this);
-	}
 	
+	if(use_depth)
+	{
+		if(playback_topics)
+		{
+			ROS_INFO_STREAM_NAMED("Fusion_processing","Subscribing at compressed topics \n"); 
+			depth_sub = it_.subscribe(depth_topic, 1, &Fusion_processing::depthCb, this, image_transport::TransportHints("compressed"));
+	    } 
+	    else
+	    {
+			depth_sub = it_.subscribe(depth_topic, 1, &Fusion_processing::depthCb, this);
+		}
+	}
     image_sub = it_.subscribe(image_dif_topic, 1, &Fusion_processing::chromaCb, this);
     
     
@@ -92,36 +95,61 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 	}
 	
 	//Calculate depth, position and features of tracked boxes
-	for(int i = 0; i < people.tracked_boxes.size(); i++)
+	if(use_depth)
 	{
-		if(depth_available)
+		Mat res;
+		for(int i = 0; i < people.tracked_boxes.size(); i++)
 		{
-			float depth = 0.0;
-			Mat depth_rect = depth_Mat(people.tracked_boxes[i]);
-			try
+			if(depth_available)
 			{
-				//Estimate its depth
-				depth = calculateDepth(depth_rect, people.tracked_boxes[i]);
+				float median = 0.0;
+				float depth = 0.0;
+				Mat depth_rect = depth_Mat(people.tracked_boxes[i]);
+				Mat res;
+				try
+				{
+					int row_start = depth_rect.rows/4;
+					int col_start = depth_rect.cols/4;
+					Mat samples(4*row_start * col_start, 1, CV_32F);
+					for( int y = 0; y < 2*row_start; y++ )
+						for( int x = 0; x < 2*col_start; x++ )
+							samples.at<float>(y + 2*x*row_start) = depth_rect.at<float>(y + row_start ,x + col_start);
+					int clusters = 3;
+					Mat labels;
+					int attempts = 5;
+					Mat centers;
+					double c = kmeans(samples, clusters, labels, TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 1000, 1), attempts, KMEANS_PP_CENTERS, centers);
+					
+					//~ cout<<centers<<endl;
+					nth_element(centers.begin<float>(), centers.begin<float>() + 1, centers.end<float>());
+					depth = centers.at<float>(1);
+					if(depth < 1000.0)
+						depth = max({centers.at<float>(0), centers.at<float>(1), centers.at<float>(2)});
+					
+					//~ //Estimate its depth
+					//~ depth = calculateDepth(depth_rect);
+					//~ depthToGray(depth_rect, res, 0, max_depth);
+					//~ imshow("depth", res);
+					//~ moveWindow("depth", 645, 0);
+					//~ cout<<depth<<endl;
+				}
+				catch(exception& e)
+				{
+					printf("%s %s", "Calculate depth failed: ", e.what());
+				}
+				
+				try
+				{
+					//Calculate real world position, height, distance moved
+					calculatePosition(people.tracked_boxes[i], people.tracked_pos[i], depth);
+				}
+				catch(exception& e)
+				{
+					printf("%s %s", "Calculate position failed: ", e.what());
+				}
 			}
-			catch(exception& e)
-			{
-				printf("%s %s", "Calculate depth failed: ", e.what());
-			}
-			
-			
-			try
-			{
-				//Calculate real world position, height, distance moved
-				calculatePosition(people.tracked_boxes[i], people.tracked_pos[i], depth);
-			}
-			catch(exception& e)
-			{
-				printf("%s %s", "Calculate position failed: ", e.what());
-			}
+		
 		}
-		
-		
-		
 	}
 	
 	
@@ -156,6 +184,7 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 		}
 		imshow("fusion", fusion);
 		moveWindow("fusion", 0, 0);
+		
 		waitKey(1);
 	}
 	
@@ -260,7 +289,7 @@ void Fusion_processing::publishResults(People& collection, ros::Time time){
 
 		fmsg.header.stamp = time;
 		fmsg.header.frame_id = camera_frame;
-		
+		float time_interval  = (time - previous_time).toSec();
 		for(int i = 0; i < collection.tracked_boxes.size() ; i++) 
 		{
 			
@@ -285,6 +314,14 @@ void Fusion_processing::publishResults(People& collection, ros::Time time){
 			box_.pos.ratio_diff = pos.ratio_diff;
 			box_.pos.distance = pos.distance;
 			box_.pos.distance_diff = pos.distance_diff;
+			box_.pos.x_diff = pos.x_diff/time_interval;
+			box_.pos.x_delta = pos.x_delta/time_interval;
+			box_.pos.y_diff = pos.y_diff/time_interval;
+			box_.pos.y_delta = pos.y_delta/time_interval;
+			box_.pos.y_norm = pos.y_norm;
+			box_.pos.y_norm_diff = pos.y_norm_diff/time_interval;
+			
+			
 			fmsg.boxes.push_back(box_);
 		}
 		results_publisher.publish(fmsg);

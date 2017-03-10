@@ -56,7 +56,7 @@ using namespace cv;
 	void track(vector< Rect_<int> >& current, People& collection, int width, int height, int rank = 3);
 	
 	//Depth estimation functions
-	double calculateDepth(Mat& src, Rect_<int> personRect);
+	float calculateDepth(Mat& src);
 	double minDepth(vector<double> vec, int number);
 	double centerDepth(const Mat& src, int number);
 	double combineDepth(double saveMin, double saveCenter, double saveCluster, double min_depth = 0.0, double max_depth = 6.0);
@@ -78,7 +78,7 @@ using namespace cv;
 		
 	//helper functions
 	int threshold(Mat& src, Mat& dst, int thresh);
-	void gammaCorrection(Mat& src);
+	void gammaCorrection(Mat& src, float factor);
 	void fixRects(vector< Rect_<int> >& rects, int screenW);
 	void depthToGray(Mat& src, Mat& dst, float min_depth, float max_depth);
 	void grayToDepth(Mat& src, Mat& dst, float max_depth);

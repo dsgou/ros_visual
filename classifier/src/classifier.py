@@ -45,16 +45,28 @@ def callback(data):
     global SVM, Mean, Std, ClassNames, counter, dicti, fps, publisher
     
     #Classify
-    fv = numpy.array([data.boxes[0].pos.area, data.boxes[0].pos.area_diff, data.boxes[0].pos.ratio, data.boxes[0].pos.ratio_diff, data.boxes[0].pos.distance, data.boxes[0].pos.distance_diff])
+    fv = numpy.array(
+    [
+        data.boxes[0].pos.ratio, 
+        data.boxes[0].pos.ratio_diff, 
+        data.boxes[0].pos.distance, 
+        data.boxes[0].pos.distance_diff,
+        data.boxes[0].pos.x_diff,
+        data.boxes[0].pos.x_delta,
+        data.boxes[0].pos.y_diff,
+        data.boxes[0].pos.y_delta,
+        data.boxes[0].pos.y_norm,
+        data.boxes[0].pos.y_norm_diff
+    ])
     curFV = (fv - Mean) / Std                
-    [Result, P] = audioTrainTest.classifierWrapper(SVM, "svm", curFV) 
+    [Result, P] = audioTrainTest.classifierWrapper(SVM, "gradientboosting", curFV) 
 
     
     dicti[ClassNames[int(Result)]] += 1
     counter += 1
     if counter == fps:
         m = max(dicti.iteritems(), key=operator.itemgetter(1))[0]
-        print m
+        #~ print m
         publisher.publish(m)
         counter = 0
         for key, value in dicti.iteritems():
@@ -66,15 +78,16 @@ if __name__ == '__main__':
     global SVM, Mean, Std, ClassNames, fps, publisher, dicti
     rospy.init_node('classifier')
     fps         = rospy.get_param('~fps')
-    events      = rospy.get_param('~events')
     svm_path    = rospy.get_param('~svm_path')
     path        = rospy.get_param('~classifier_path')
     input_topic = rospy.get_param('~input_topic')
     
-    dicti = {}
-    for e in events.split(' '):
-        dicti[e] = 0
     publisher = rospy.Publisher('/classifier/result', String, queue_size = 1)
     rospy.Subscriber(input_topic, FusionMsg, callback)
     (SVM, Mean, Std, ClassNames) = loadSVModel(path + svm_path)
+    
+    dicti = {}
+    for c in ClassNames:
+        dicti[c] = 0
+        
     rospy.spin()

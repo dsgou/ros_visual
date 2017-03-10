@@ -77,145 +77,32 @@ void depthToGray(Mat& src, Mat& dst, float min_depth, float max_depth)
  * 		-Double holding the min cluster median value
  * 
  */
-double calculateDepth(Mat& src, Rect_<int> personRect)
+float calculateDepth(Mat& src)
 {
-	
-	int clusters = 2;
-	int cols = src.cols;
-	int rows = src.rows;
-	int channels = src.channels();
-	int size = cols*rows*channels;
-	double median = 0.0;
-	double saveMin = 0.0;
-	double saveCluster = 0.0;
-	double saveCenter = 0.0;
-	double depthCombined = 0.0;
-	vector<double> vec;
-	vector<float> cluster_vec;
 	Mat labels;
 	Mat centers;
-	
-	if(cols > 0 && rows > 0)
+	float depth = 0.0;
+	int clusters = 2;
+	int attempts = 5;
+	int row_start = src.rows/4;
+	int col_start = src.cols/4;
+		
+	if(src.cols > 0 && src.rows > 0)
 	{
+		Mat samples(4*row_start * col_start, 1, CV_32F);
+		for( int y = 0; y < 2*row_start; y++ )
+			for( int x = 0; x < 2*col_start; x++ )
+				samples.at<float>(y + 2*x*row_start) = src.at<float>(y + row_start ,x + col_start);
 		
-		if(src.isContinuous())
-		{
-			rows = 1;
-			cols = size;
-		}
+		kmeans(samples, clusters, labels, TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 1000, 1), attempts, KMEANS_PP_CENTERS, centers);
 		
-		cols = src.cols*0.7;
-		rows = src.rows*0.4;
-		
-		for(int i = 0; i < rows; i++)
-		{
-			const float* cur = src.ptr<float>(i);
-			for(int j = 0; j < cols; j++)
-			{
-				cluster_vec.push_back(cur[j]);
-				
-			}
-			
-		}
-		double compact = kmeans(cluster_vec, clusters, labels, TermCriteria(TermCriteria::EPS+TermCriteria::COUNT, 10, 1.0), 3, KMEANS_PP_CENTERS, centers);
-		
-		// cluster item count
-		int counter[clusters];
-		for(int i = 0; i < clusters; i++)
-		{
-			counter[i] = 0;
-		}
-		
-		//check which centroid has the smallest value
-		int min_centroid = INT_MAX;
-		int index [clusters + 1];
-		for(int i = 0; i < clusters + 1; i++)
-		{
-			index[i] = -1;
-		}
-		
-		if(centers.rows > 0)
-		{	
-			for(int i = 0; i < clusters; i++)
-			{
-				if((min_centroid > centers.at<float>(i)) && (centers.at<float>(i) > 0))
-				{
-					min_centroid = centers.at<float>(i);
-					index[0] = i;
-				}
-			}
-			index[index[0] + 1] = INT_MAX;
-			
-			//cout<<rep.c[0][0] <<" "<< rep.c[1][0]<<" "<<min_centroid<< " " <<index[0]<<endl;
-			//~ cout<<counter[0] <<" "<< counter[1]<<" "<<endl;
-			
-			
-			//populate a vector with the points of the cluster
-			//with the smallest centroid and find the median value
-			int loop = 0; 
-			while((median == 0) && (loop < clusters))
-			{
-				loop++;
-				cluster_vec.clear();
-				for(int i = 0; i < rows; i++)
-				{
-					const float* cur = src.ptr<float>(i);	
-					for(int j = 0; j < cols; j++)
-					{
-						if(index[0] == labels.at<int>(i*cols + j))
-						{
-							cluster_vec.push_back(cur[j]);
-						}
-					}
-				}
-				
-				//median
-				nth_element(cluster_vec.begin(), cluster_vec.begin() + cluster_vec.size()/2, cluster_vec.end());
-				median = cluster_vec[cluster_vec.size()/2];
-				for(int i = 1; i < clusters + 1; i++)
-				{
-					if(index[i] == -1)
-					{
-						index[0] = i - 1;
-						index[i] = INT_MAX;
-						break;
-					}
-				}
-			}
-			
-			//~ printf("%s %2.3f\n","Depth:  " ,median);
-			
-			/*
-			Mat src_gray;
-			depthToGray(src, src_gray, 0, max_depth);
-			for(int i = 0; i < rows; i++)
-			{
-				uchar* cur = src_gray.ptr<uchar>(i);	
-				for(int j = 0; j < cols; j++)
-				{
-					if(rep.cidx[i*cols + j] == index[0])
-					{
-						cur[j] = 0;
-					}
-					else
-					{
-						cur[j] = 255;
-					}
-				}
-			}
-			
-			Mat temp_img(height, depth_width, CV_8UC1);
-			temp_img = Scalar(0);
+		depth = min(centers.at<float>(0), centers.at<float>(1));
+		if(depth < 1000.0)
+			depth = max(centers.at<float>(0), centers.at<float>(1));
 
-			src.copyTo(temp_img(Rect(personRect.x, personRect.y, cols, rows)));
-			imshow("Clustered", temp_img);
-			moveWindow("Clustered", 645, 0);
-			*/
-		
-		}
 		
 	}
-	return median;
+	return depth;
 	
 	
 	/*

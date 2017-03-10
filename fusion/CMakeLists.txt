@@ -24,7 +24,7 @@ add_message_files(
   FusionMsg.msg
 )
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 2 REQUIRED)
 find_package(Boost  COMPONENTS filesystem)
 
 generate_messages(

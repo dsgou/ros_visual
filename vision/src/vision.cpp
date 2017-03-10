@@ -434,7 +434,7 @@ void calculatePosition(Rect& rect, Position& pos, float depth, int width, int he
 	float top 		= 0.0;
 	float bottom 	= 0.0;
 	
-	if (depth != 0.0)
+	if(depth != 0.0)
 	{
 		
 		//Find the focal length 
@@ -599,16 +599,19 @@ void frameDif(Mat& src1, Mat& src2, Mat& dst, float thresh)
  * 
  * RETURN: --
  */
-void gammaCorrection(Mat& src)
+void gammaCorrection(Mat& src, float factor)
 {
-	double inverse_gamma = 1.0 / 2.5;
+	float inverse_gamma = 1.0/factor;
 	
-	Mat lut_matrix(1, 256, CV_8UC1 );
-	uchar * ptr = lut_matrix.ptr();
-	for( int i = 0; i < 256; i++ )
-		ptr[i] = (int)( pow( (double) i / 255.0, inverse_gamma ) * 255.0 );
+	unsigned char lut_matrix[256];
+	for(int i = 0; i < 256; i++)
+		lut_matrix[i] = saturate_cast<uchar>(pow(i/255.0, inverse_gamma)*255.0);
 	
-	LUT( src, lut_matrix, src );
+	MatIterator_<uchar> it, end;
+	for (it = src.begin<uchar>(), end = src.end<uchar>(); it != end; it++)
+	  *it = lut_matrix[(*it)];
+
+	//~ LUT(src, lut_matrix, src);
 }
 
 
