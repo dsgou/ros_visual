@@ -7,6 +7,7 @@
 	<arg name="display"  		default="false" 				 />
 	<arg name="compressed" 		default="false" 				 />
 	<arg name="use_depth" 		default="false" 				 />
+	<arg name="fps" 			default="30" 					 />
 	
 	<node pkg="chroma" type="chroma" name="chroma" output="screen">
 		<rosparam file="$(find chroma)/config/parameters.yaml" command="load" />
@@ -32,11 +33,13 @@
 		<param name="project_path"    value="$(find ros_visual)" />
 		<param name="display" 		  value="true"     />
 		<param name="use_depth" 	  value="$(arg use_depth)"     />
+		<param name="fps" 	  		  value="$(arg fps)"     />
 	</node>
 
 	<node pkg="classifier" type="classifier.py" name="classifier" output="screen">
 		<rosparam file="$(find classifier)/config/parameters.yaml" command="load" />
 		<param name="classifier_path" value="$(find classifier)" 				  />
+		<param name="fps" 	  		  value="$(arg fps)"     />
 	</node>
 
 </launch>

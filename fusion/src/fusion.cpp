@@ -20,6 +20,7 @@ Fusion_processing::Fusion_processing()
 	local_nh.param("use_depth"		 , use_depth		, true);
 	local_nh.param("max_depth"		 , max_depth 		, DEPTH_MAX);
 	local_nh.param("min_depth"		 , min_depth 		, DEPTH_MIN);
+	local_nh.param("fps"			 , max_rank 		, 30);
 	
 	if(use_depth)
 	{
@@ -76,24 +77,8 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 	detectBlobs(fusion, fusion_rects, 15, 1, false);
 	
 	//Track blobs
-	track(fusion_rects, people, width, height);
-	
-	//Check which tracked box has the highest rank
-	//and draw the boxes for visualization	
-	vector<float>::iterator rank_it;
-	for(rank_it = people.tracked_rankings.begin(); rank_it < people.tracked_rankings.end();)
-	{
-		int dist = distance(people.tracked_rankings.begin(), rank_it);
-		if(*rank_it <= 3)
-		{
-			rank_it = people.tracked_rankings.erase(rank_it);
-			people.tracked_pos.erase(people.tracked_pos.begin() + dist);
-			people.tracked_boxes.erase(people.tracked_boxes.begin() + dist);
-		}
-		else
-			++rank_it;
-	}
-	
+	track(fusion_rects, people, width, height, 3, max_rank);
+		
 	//Calculate depth, position and features of tracked boxes
 	if(use_depth)
 	{

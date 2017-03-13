@@ -91,6 +91,7 @@ class Fusion_processing
 		int verRange 	  = 7; //in pixels
 		int recR 		  = 2;
 		int counter = 0;
+		int max_rank = 0;
 		long curTime ;
 		float backFactor = 0.40;
 		

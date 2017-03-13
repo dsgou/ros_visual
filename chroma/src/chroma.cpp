@@ -152,7 +152,7 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 	//Publish image difference
 	cv_ptr->image = dif_rgb;
 	image_pub_dif.publish(cv_ptr->toImageMsg());
-	frameCounter++;
+	++frameCounter;
 }
 
 int main(int argc, char** argv)

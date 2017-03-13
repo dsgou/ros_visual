@@ -175,13 +175,14 @@ void detectBlobs(const Mat& src, vector< Rect_<int> >& colour_areas, int range, 
  * 			- cur_boxes  : current image rectangles
  * 			- collection : the collection to be populated
  * 			- rank  	 : the initial rank of a new box, 
+ * 			- max_rank  	 : the initial rank of a new box, 
  * 			- threshold  : rectangle comparison threshold
  * 
  * RETURN --
  */
-void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int height, int rank)
+void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int height, int rank, int max_rank)
 {
-	bool exists = false;
+	
 	float step  = 1.2;
 	vector<bool> updates(collection.tracked_boxes.size(), false);
 	if(!cur_boxes.empty())
@@ -191,10 +192,8 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 		//the boxes that fall in its area 
 		for(int a = 0; a < collection.tracked_boxes.size(); ++a) 
 		{	
-			exists = false;
 			all = Rect(0,0,0,0);
-			vector< Rect_<int> >::iterator it;
-			for(it = cur_boxes.begin(); it < cur_boxes.end();) 
+			for(vector< Rect_<int> >::iterator it = cur_boxes.begin(); it < cur_boxes.end();) 
 			{
 				Rect_<int> cur_box = *it;
 				Rect intersection = cur_box | collection.tracked_boxes[a];
@@ -207,7 +206,6 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 					else
 						all = cur_box | all;
 					it = cur_boxes.erase(it);
-
 				}
 				else
 					++it;
@@ -291,6 +289,13 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 				collection.tracked_boxes[a].height = h_new;
 				
 				//***************************
+				
+				//check we did not exceed the limits 
+				if(collection.tracked_boxes[a].x + collection.tracked_boxes[a].width > width)
+					collection.tracked_boxes[a].width = width - collection.tracked_boxes[a].x;
+				if(collection.tracked_boxes[a].y + collection.tracked_boxes[a].height > height)
+					collection.tracked_boxes[a].height = height - collection.tracked_boxes[a].y;
+					
 				updates.at(a) = true;	
 			}
 			
@@ -368,44 +373,34 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 				
 			}
 		}	
-		
-		//Update the rankings
-		for(int a = 0; a < collection.tracked_boxes.size(); ++a)
+	}	
+	
+	//Update the rankings
+	for(int a = 0; a < collection.tracked_boxes.size(); ++a)
+	{
+		if (updates[a] == true)
 		{
-			if (updates[a] == true)
-			{
-				if(collection.tracked_rankings[a] <= 30)
-					collection.tracked_rankings[a] = collection.tracked_rankings[a] + step;
-			}
-				
-			collection.tracked_rankings[a] = collection.tracked_rankings[a] - 1;
-			
-			//check we did not exceed the limits 
-			if(collection.tracked_boxes[a].x + collection.tracked_boxes[a].width > width)
-				collection.tracked_boxes[a].width = width - collection.tracked_boxes[a].x;
-			if(collection.tracked_boxes[a].y + collection.tracked_boxes[a].height > height)
-				collection.tracked_boxes[a].height = height - collection.tracked_boxes[a].y;
+			if(collection.tracked_rankings[a] <= max_rank)
+				collection.tracked_rankings[a] = collection.tracked_rankings[a] + step;
 		}
-		
-		//Delete those that fall below 0 rank
-		vector<float>::iterator rank_it;
-		for(rank_it = collection.tracked_rankings.begin(); rank_it < collection.tracked_rankings.end();)
+		collection.tracked_rankings[a] = collection.tracked_rankings[a] - 1;
+	}
+	
+	//Delete those that fall below 0 rank
+	for(vector<float>::iterator rank_it = collection.tracked_rankings.begin(); rank_it < collection.tracked_rankings.end();)
+	{
+		int dist = distance(collection.tracked_rankings.begin(), rank_it);
+		if(*rank_it < rank || collection.tracked_boxes[dist].area() < rank)
 		{
-			int dist = distance(collection.tracked_rankings.begin(), rank_it);
-			if(*rank_it <= 0 || collection.tracked_boxes[dist].area() <= 0)
-			{
-				rank_it = collection.tracked_rankings.erase(rank_it);
-				collection.tracked_pos.erase(collection.tracked_pos.begin() + dist);
-				collection.tracked_boxes.erase(collection.tracked_boxes.begin() + dist);
-			}
-			else
-				++rank_it;
-			
+			rank_it = collection.tracked_rankings.erase(rank_it);
+			collection.tracked_pos.erase(collection.tracked_pos.begin() + dist);
+			collection.tracked_boxes.erase(collection.tracked_boxes.begin() + dist);
 		}
-		
-		
+		else
+			++rank_it;
 		
 	}
+		
 }
 
 /* Calculates and stores the coordinates(x, y, z) in meters of a rectangle
