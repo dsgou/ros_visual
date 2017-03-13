@@ -12,7 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   vision
 )
 
-find_package(OpenCV 2 REQUIRED)
 
 catkin_package()
 
@@ -22,7 +21,6 @@ include_directories(
   include
   /usr/include/
   ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
   ${vision_INCLUDE_DIRS}
 )
 
@@ -37,6 +35,5 @@ add_executable(chroma ${SRC_LIST})
 
 target_link_libraries(${PROJECT_NAME} 
   ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
   ${vision_LIBRARIES}
 )

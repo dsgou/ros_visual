@@ -9,7 +9,8 @@ from std_msgs.msg import String
 from fusion.msg import FusionMsg
 from pyAudioAnalysis import audioTrainTest
 
-global SVM, Mean, Std, ClassNames, counter, dicti, fps, publisher, events
+global SVM 
+global Mean, Std, ClassNames, counter, dicti, fps, publisher, events
 
 counter = 0
 
@@ -71,8 +72,6 @@ def callback(data):
         counter = 0
         for key, value in dicti.iteritems():
             dicti[key] = 0
-    #~ print Mean
-    #~ print curFV 
 
 if __name__ == '__main__':
     global SVM, Mean, Std, ClassNames, fps, publisher, dicti
@@ -89,5 +88,5 @@ if __name__ == '__main__':
     dicti = {}
     for c in ClassNames:
         dicti[c] = 0
-        
+    
     rospy.spin()

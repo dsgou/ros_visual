@@ -45,6 +45,8 @@
   <run_depend>chroma</run_depend>
   <run_depend>depth</run_depend>
   <run_depend>fusion</run_depend>
+  <run_depend>classifier</run_depend>
+  <run_depend>vision</run_depend>
   
   <!-- The export tag contains other, unspecified, tags --> 
   <export>

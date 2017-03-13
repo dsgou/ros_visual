@@ -91,14 +91,14 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 			people.tracked_boxes.erase(people.tracked_boxes.begin() + dist);
 		}
 		else
-			rank_it++;
+			++rank_it;
 	}
 	
 	//Calculate depth, position and features of tracked boxes
 	if(use_depth)
 	{
 		Mat res;
-		for(int i = 0; i < people.tracked_boxes.size(); i++)
+		for(int i = 0; i < people.tracked_boxes.size(); ++i)
 		{
 			if(depth_available)
 			{
@@ -111,8 +111,8 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 					int row_start = depth_rect.rows/4;
 					int col_start = depth_rect.cols/4;
 					Mat samples(4*row_start * col_start, 1, CV_32F);
-					for( int y = 0; y < 2*row_start; y++ )
-						for( int x = 0; x < 2*col_start; x++ )
+					for( int y = 0; y < 2*row_start; ++y)
+						for( int x = 0; x < 2*col_start; ++x)
 							samples.at<float>(y + 2*x*row_start) = depth_rect.at<float>(y + row_start ,x + col_start);
 					int clusters = 3;
 					Mat labels;
@@ -178,7 +178,7 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 		for(Rect rect: fusion_rects)
 			rectangle(fusion, rect, 255, 1);
 		*/
-		for(int i = 0; i < people.tracked_boxes.size(); i++)
+		for(int i = 0; i < people.tracked_boxes.size(); ++i)
 		{
 			rectangle(fusion, people.tracked_boxes[i], 255, 1);
 		}
@@ -226,7 +226,7 @@ void Fusion_processing::writeCSV(People& collection, string path, ros::Time time
 	if (!collection.tracked_boxes.empty())
 	{
 		float time_interval  = (time - previous_time).toSec();
-		for(int i = 0; i < collection.tracked_boxes.size(); i++) 
+		for(int i = 0; i < collection.tracked_boxes.size(); ++i) 
 		{
 			float rank = collection.tracked_rankings[i];
 			if(rank > 4)
@@ -290,7 +290,7 @@ void Fusion_processing::publishResults(People& collection, ros::Time time){
 		fmsg.header.stamp = time;
 		fmsg.header.frame_id = camera_frame;
 		float time_interval  = (time - previous_time).toSec();
-		for(int i = 0; i < collection.tracked_boxes.size() ; i++) 
+		for(int i = 0; i < collection.tracked_boxes.size() ; ++i) 
 		{
 			
 			Rect box = collection.tracked_boxes[i];

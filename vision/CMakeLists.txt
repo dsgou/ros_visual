@@ -4,7 +4,7 @@ project(vision)
 set(CMAKE_CXX_FLAGS "-std=c++11")
 set(CMAKE_BUILD_TYPE Release)
 
-find_package(OpenCV 2 REQUIRED)
+find_package(OpenCV 3.2 REQUIRED)
 
 catkin_package(INCLUDE_DIRS include
                LIBRARIES vision)
@@ -12,15 +12,17 @@ catkin_package(INCLUDE_DIRS include
 include_directories(
   include
   /usr/include/
+  ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
 )
 
- 
+
 file(GLOB SOURCES "src/*.cpp")
 file(GLOB HEADERS "include/*.hpp")
 
 link_directories(
   /usr/lib/
+  /usr/local/lib/ 
   /usr/lib/x86_64-linux-gnu/
 )
 

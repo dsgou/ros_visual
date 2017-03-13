@@ -55,20 +55,17 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 	  return;
 	}
 
-	cur_rgb = (cv_ptr->image).clone();
+	Mat cur_rgb = (cv_ptr->image).clone();
 	
 	//~ equalizeHist( cur_rgb, cur_rgb );
 	//~ cur_rgb.convertTo(cur_rgb, -1, 1.2, 0);
 	Ptr<CLAHE> clahe = createCLAHE();
 	clahe->setClipLimit(1.5);
 	clahe->setTilesGridSize(Size(10, 10));
-	gammaCorrection(cur_rgb, 2.5);
-	clahe->apply(cur_rgb, cur_rgb);
-	
-	// contrast fix
 	
 	// gamma correction
-	
+	gammaCorrection(cur_rgb, 2.5);
+	clahe->apply(cur_rgb, cur_rgb);
 
 	// First run variable initialization 
 	if(frameCounter == -1 )
@@ -84,14 +81,12 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 	//Calculating image difference between the current and previous images
 	frameDif(cur_rgb, ref_rgb, dif_rgb, 255*0.33);
 
-	for(int y = 0; y < 1; y++)
+	for(int y = 0; y < 1; ++y)
 	{
 		uchar* cur = cur_rgb.ptr<uchar>(y);
 		uchar* ref = ref_rgb.ptr<uchar>(y);
-		for(int x = 0; x < size; x++)
-		{
+		for(int x = 0; x < size; ++x)
 			ref[x] = cur[x]*(1-backFactor)+ ref[x]*backFactor;
-		} 
 	}
 	if(display)
 	{

@@ -1,4 +1,5 @@
 #include <vision.hpp>
+#include <exception>
 
 /* Detects non-black rectangle areas in a black image. This 
  * to produce ROIS(Regions of interest) for further processing.
@@ -13,7 +14,7 @@
  * 
  * RETURN --
  */
-void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, int subsampling, bool detect_people)
+void detectBlobs(const Mat& src, vector< Rect_<int> >& colour_areas, int range, int subsampling, bool detect_people)
 {
 	bool flag 	 		   = false;
 	int cols     		   = src.cols;
@@ -188,7 +189,7 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 		Rect_<int> all;
 		//We reposition every tracked box with a union of
 		//the boxes that fall in its area 
-		for(int a = 0; a < collection.tracked_boxes.size(); a++) 
+		for(int a = 0; a < collection.tracked_boxes.size(); ++a) 
 		{	
 			exists = false;
 			all = Rect(0,0,0,0);
@@ -209,7 +210,7 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 
 				}
 				else
-					it++;
+					++it;
 			}
 			
 			//The reposition rules
@@ -295,7 +296,7 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 			
 			
 		}
-		for(int a = 0; a < cur_boxes.size(); a++) 
+		for(int a = 0; a < cur_boxes.size(); ++a) 
 		{
 			Position pos;
 			collection.tracked_pos.push_back(pos);
@@ -307,9 +308,9 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 		//In this phase we loop through all the produced rectangles and again try to merge those whose
 		//intersection is above a certain threshold	
 		int end = collection.tracked_boxes.size();
-		for(int a = 0; a < end; a++) 
+		for(int a = 0; a < end; ++a) 
 		{
-			for(int b = a + 1; b < end; b++) 
+			for(int b = a + 1; b < end; ++b) 
 			{	
 				Rect_<int> removal = collection.tracked_boxes[a];
 				Rect_<int> rect    = collection.tracked_boxes[b];
@@ -361,7 +362,7 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 						collection.tracked_pos[b] = collection.tracked_pos.back();
 						collection.tracked_pos.pop_back();
 						b=a;
-						end--;
+						--end;
 					}
 				}
 				
@@ -369,7 +370,7 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 		}	
 		
 		//Update the rankings
-		for(int a = 0; a < collection.tracked_boxes.size(); a++)
+		for(int a = 0; a < collection.tracked_boxes.size(); ++a)
 		{
 			if (updates[a] == true)
 			{
@@ -398,7 +399,7 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 				collection.tracked_boxes.erase(collection.tracked_boxes.begin() + dist);
 			}
 			else
-				rank_it++;
+				++rank_it;
 			
 		}
 		
@@ -586,7 +587,7 @@ void estimateBackground(Mat& src, Mat& dst, vector<Mat>& storage, int recursion,
  * 
  * RETURN: --
  */
-void frameDif(Mat& src1, Mat& src2, Mat& dst, float thresh)
+void frameDif(const Mat& src1, const Mat& src2, Mat& dst, float thresh)
 {
 	absdiff(src1, src2, dst);
 	threshold(dst, dst, thresh, 255, 0);
@@ -599,19 +600,14 @@ void frameDif(Mat& src1, Mat& src2, Mat& dst, float thresh)
  * 
  * RETURN: --
  */
-void gammaCorrection(Mat& src, float factor)
+void gammaCorrection(const Mat& src, float factor)
 {
-	float inverse_gamma = 1.0/factor;
-	
-	unsigned char lut_matrix[256];
-	for(int i = 0; i < 256; i++)
-		lut_matrix[i] = saturate_cast<uchar>(pow(i/255.0, inverse_gamma)*255.0);
-	
-	MatIterator_<uchar> it, end;
-	for (it = src.begin<uchar>(), end = src.end<uchar>(); it != end; it++)
-	  *it = lut_matrix[(*it)];
-
-	//~ LUT(src, lut_matrix, src);
+	float inverse_gamma = 1.0/2.5;
+	Mat lut_matrix(256, 1, CV_8UC1);
+	uchar* ptr = lut_matrix.ptr<uchar>(0);
+	for( int i = 0; i < 256; ++i)
+		ptr[i] =  saturate_cast<uchar>(pow(i/255.0, inverse_gamma)*255.0);
+	LUT(src, lut_matrix, src);
 }
 
 

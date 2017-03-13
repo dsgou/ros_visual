@@ -2,8 +2,8 @@
 <launch>
 
 	<arg name="project_path" 	default="$(find ros_visual)" 	 />
-	<arg name="image_topic"  	default="/radio_cam/rgb/image_raw"  />
-	<arg name="depth_topic"  	default="/radio_cam/depth/image_raw"/>
+	<arg name="image_topic"  	default="/camera/rgb/image_raw"  />
+	<arg name="depth_topic"  	default="/camera/depth/image_raw"/>
 	<arg name="display"  		default="false" 				 />
 	<arg name="compressed" 		default="false" 				 />
 	<arg name="use_depth" 		default="false" 				 />

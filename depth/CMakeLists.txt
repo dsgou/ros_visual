@@ -14,7 +14,6 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 
-find_package(OpenCV 2 REQUIRED)
 find_package(vision REQUIRED)
 
 catkin_package()
@@ -24,9 +23,7 @@ aux_source_directory(src/ SRC_LIST)
 include_directories(
   include
   /usr/include/
-  /usr/include/libalglib/
   ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
   ${vision_INCLUDE_DIRS}
 )
 
@@ -40,8 +37,6 @@ add_executable(depth ${SRC_LIST})
 
 target_link_libraries(${PROJECT_NAME} 
   ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
   ${vision_LIBRARIES}  
-#libvision.so
 )
 

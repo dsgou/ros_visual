@@ -24,7 +24,6 @@ add_message_files(
   FusionMsg.msg
 )
 
-find_package(OpenCV 2 REQUIRED)
 find_package(Boost  COMPONENTS filesystem)
 
 generate_messages(
@@ -41,7 +40,6 @@ include_directories(
   include
   /usr/include/
   ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${vision_INCLUDE_DIRS}
 )
@@ -57,7 +55,6 @@ add_executable(fusion ${SRC_LIST})
 
 target_link_libraries(${PROJECT_NAME} 
   ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
   ${Boost_LIBRARIES}
   ${vision_LIBRARIES}
 )

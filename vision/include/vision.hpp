@@ -52,7 +52,7 @@ using namespace cv;
 	};
 		
 	//Detection and tracking of blobs
-	void detectBlobs(Mat& src, vector< Rect_<int> >& colour_areas, int range, int subsampling, bool detect_people);
+	void detectBlobs(const Mat& src, vector< Rect_<int> >& colour_areas, int range, int subsampling, bool detect_people);
 	void track(vector< Rect_<int> >& current, People& collection, int width, int height, int rank = 3);
 	
 	//Depth estimation functions
@@ -74,11 +74,11 @@ using namespace cv;
 	void estimateBackground(Mat& src, Mat& dst, vector<Mat>& storage, int recursion, float ratio = 0.04, int index = 0);
 	void estimateForeground(Mat& src1, Mat& src2, Mat& dst);
 	
-	void frameDif(Mat& src1, Mat& src2, Mat& dst, float thresh);
+	void frameDif(const Mat& src1, const Mat& src2, Mat& dst, float thresh);
 		
 	//helper functions
 	int threshold(Mat& src, Mat& dst, int thresh);
-	void gammaCorrection(Mat& src, float factor);
+	void gammaCorrection(const Mat& src, float factor);
 	void fixRects(vector< Rect_<int> >& rects, int screenW);
 	void depthToGray(Mat& src, Mat& dst, float min_depth, float max_depth);
 	void grayToDepth(Mat& src, Mat& dst, float max_depth);

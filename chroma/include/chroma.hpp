@@ -42,7 +42,6 @@ class Chroma_processing
 		string image_out_dif_topic;
 		
 		
-		Mat cur_rgb;
 		Mat ref_rgb;
 		Mat dif_rgb;
 		
