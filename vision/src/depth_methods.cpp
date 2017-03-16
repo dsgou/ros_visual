@@ -77,33 +77,44 @@ void depthToGray(Mat& src, Mat& dst, float min_depth, float max_depth)
  * 		-Double holding the min cluster median value
  * 
  */
-float calculateDepth(Mat& src)
+float calculateDepth(const Mat& src, Position& pos)
 {
 	Mat labels;
 	Mat centers;
-	float depth = 0.0;
-	int clusters = 2;
-	int attempts = 5;
+	int clusters = 3;
+	int attempts = 3;
+	int j = 0;
+	float depth= 0.0;
+	float dif = 1000.0;
+	float temp_depth = 0.0;
+	int occur[clusters] = {};
 	int row_start = src.rows/4;
 	int col_start = src.cols/4;
-		
-	if(src.cols > 0 && src.rows > 0)
-	{
-		Mat samples(4*row_start * col_start, 1, CV_32F);
-		for( int y = 0; y < 2*row_start; y++ )
-			for( int x = 0; x < 2*col_start; x++ )
-				samples.at<float>(y + 2*x*row_start) = src.at<float>(y + row_start ,x + col_start);
-		
-		kmeans(samples, clusters, labels, TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 1000, 1), attempts, KMEANS_PP_CENTERS, centers);
-		
-		depth = min(centers.at<float>(0), centers.at<float>(1));
-		if(depth < 1000.0)
-			depth = max(centers.at<float>(0), centers.at<float>(1));
-
-		
-	}
-	return depth;
 	
+	Mat samples(4*row_start * col_start, 1, CV_32F);
+	for( int y = 0; y < 2*row_start; ++y)
+		for( int x = 0; x < 2*col_start; ++x)
+			samples.at<float>(y + 2*x*row_start) = src.at<float>(y + row_start ,x + col_start);
+	double c = kmeans(samples, clusters, labels, TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 1000, 10), attempts, KMEANS_PP_CENTERS, centers);
+	for(int j = 0; j < labels.rows; ++j)
+		++occur[labels.at<int>(j)];
+	
+	while(j < clusters && (temp_depth < 1000.0 || dif > 1000))
+	{
+		auto it = max_element(occur, occur + clusters);
+		int index = distance(occur, it);
+		temp_depth = centers.at<float>(index);
+		occur[index]= 0;
+		if(pos.z > 0)
+			dif = abs(pos.z - temp_depth);
+		else
+			dif = 0.0;
+		++j;
+	}
+	if (j < clusters)
+		depth = temp_depth;
+		
+	return depth;
 	
 	/*
 	// Preprocessing step to discard null or unwanted depth values 

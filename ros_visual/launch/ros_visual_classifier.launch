@@ -31,7 +31,7 @@
 		<rosparam file="$(find fusion)/config/parameters.yaml" command="load" />
 		<param name="playback_topics" value="$(arg compressed)"  />
 		<param name="project_path"    value="$(find ros_visual)" />
-		<param name="display" 		  value="true"     />
+		<param name="display" 		  value="false"     />
 		<param name="use_depth" 	  value="$(arg use_depth)"     />
 		<param name="fps" 	  		  value="$(arg fps)"     />
 	</node>

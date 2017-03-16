@@ -17,23 +17,20 @@ Fusion_processing::Fusion_processing()
 	local_nh.param("create_directory", create_directory , false);
 	local_nh.param("write_csv"		 , write_csv 		, false);
 	local_nh.param("display"		 , display 			, false);
-	local_nh.param("use_depth"		 , use_depth		, true);
 	local_nh.param("max_depth"		 , max_depth 		, DEPTH_MAX);
 	local_nh.param("min_depth"		 , min_depth 		, DEPTH_MIN);
 	local_nh.param("fps"			 , max_rank 		, 30);
 	
-	if(use_depth)
+	if(playback_topics)
 	{
-		if(playback_topics)
-		{
-			ROS_INFO_STREAM_NAMED("Fusion_processing","Subscribing at compressed topics \n"); 
-			depth_sub = it_.subscribe(depth_topic, 1, &Fusion_processing::depthCb, this, image_transport::TransportHints("compressed"));
-	    } 
-	    else
-	    {
-			depth_sub = it_.subscribe(depth_topic, 1, &Fusion_processing::depthCb, this);
-		}
+		ROS_INFO_STREAM_NAMED("Fusion_processing","Subscribing at compressed topics \n"); 
+		depth_sub = it_.subscribe(depth_topic, 1, &Fusion_processing::depthCb, this, image_transport::TransportHints("compressed"));
+    } 
+    else
+    {
+		depth_sub = it_.subscribe(depth_topic, 1, &Fusion_processing::depthCb, this);
 	}
+	
     image_sub = it_.subscribe(image_dif_topic, 1, &Fusion_processing::chromaCb, this);
     
     
@@ -77,64 +74,72 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 	detectBlobs(fusion, fusion_rects, 15, 1, false);
 	
 	//Track blobs
-	track(fusion_rects, people, width, height, 3, max_rank);
+	track(fusion_rects, people, width, height, 3, 5*max_rank);
 		
 	//Calculate depth, position and features of tracked boxes
-	if(use_depth)
+	if(depth_available)
 	{
-		Mat res;
 		for(int i = 0; i < people.tracked_boxes.size(); ++i)
 		{
-			if(depth_available)
+			float depth = 0.0;
+			Mat depth_rect = depth_Mat(people.tracked_boxes[i]);
+			
+			try
 			{
-				float median = 0.0;
-				float depth = 0.0;
-				Mat depth_rect = depth_Mat(people.tracked_boxes[i]);
-				Mat res;
-				try
-				{
-					int row_start = depth_rect.rows/4;
-					int col_start = depth_rect.cols/4;
-					Mat samples(4*row_start * col_start, 1, CV_32F);
-					for( int y = 0; y < 2*row_start; ++y)
-						for( int x = 0; x < 2*col_start; ++x)
-							samples.at<float>(y + 2*x*row_start) = depth_rect.at<float>(y + row_start ,x + col_start);
-					int clusters = 3;
-					Mat labels;
-					int attempts = 5;
-					Mat centers;
-					double c = kmeans(samples, clusters, labels, TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 1000, 1), attempts, KMEANS_PP_CENTERS, centers);
-					
-					//~ cout<<centers<<endl;
-					nth_element(centers.begin<float>(), centers.begin<float>() + 1, centers.end<float>());
-					depth = centers.at<float>(1);
-					if(depth < 1000.0)
-						depth = max({centers.at<float>(0), centers.at<float>(1), centers.at<float>(2)});
-					
-					//~ //Estimate its depth
-					//~ depth = calculateDepth(depth_rect);
-					//~ depthToGray(depth_rect, res, 0, max_depth);
-					//~ imshow("depth", res);
-					//~ moveWindow("depth", 645, 0);
-					//~ cout<<depth<<endl;
-				}
-				catch(exception& e)
-				{
-					printf("%s %s", "Calculate depth failed: ", e.what());
-				}
+				//Depth
+				depth = calculateDepth(depth_rect, people.tracked_pos[i]);
 				
-				try
-				{
-					//Calculate real world position, height, distance moved
-					calculatePosition(people.tracked_boxes[i], people.tracked_pos[i], depth);
-				}
-				catch(exception& e)
-				{
-					printf("%s %s", "Calculate position failed: ", e.what());
-				}
+				//Calculating z_diff feature
+				people.tracked_pos[i].z_diff = depth - people.tracked_pos[i].z;
+				
+				if(depth != 0)
+					people.tracked_pos[i].z = depth;
+				
+				//Calculating Std of depth feature
+				//~ double sum = 0.0;
+				//~ for(int i = 0; i < depth_rect.rows; ++i)
+				//~ {
+					//~ double* cur = depth_rect.ptr<double>(i);
+					//~ for(int j = 0; j < depth_rect.cols; ++j)
+					//~ {
+						//~ if(isfinite(cur[j]))
+						//~ {
+							//~ double temp = abs(cur[j] - people.tracked_pos[i].z);
+							//~ cout<<sum<<endl;
+							//~ sum += temp;
+							
+						//~ }
+						
+					//~ }
+				//~ }
+				//~ cout<<sum<<endl;
+				//~ people.tracked_pos[i].depth_std = sum/(depth_rect.rows*depth_rect.cols); 
+				
+				
+				//Visualize depth mat
+				//~ Mat res;
+				//~ depth = calculateDepth(depth_rect);
+				//~ depthToGray(depth_rect, res, 0, max_depth);
+				//~ imshow("depth", res);
+				//~ moveWindow("depth", 645, 0);
 			}
-		
+			catch(exception& e)
+			{
+				printf("%s %s", "Calculate depth failed: ", e.what());
+			}
+			
+			try
+			{
+				//Calculate real world position, height, distance moved
+				calculatePosition(people.tracked_boxes[i], people.tracked_pos[i]);
+			}
+			catch(exception& e)
+			{
+				printf("%s %s", "Calculate position failed: ", e.what());
+			}
 		}
+		
+		
 	}
 	
 	
@@ -208,7 +213,7 @@ void Fusion_processing::depthCb(const sensor_msgs::ImageConstPtr& msg)
 void Fusion_processing::writeCSV(People& collection, string path, ros::Time time)
 {		
 	ofstream storage(path + "/fusion.csv" ,ios::out | ios::app );
-	if (!collection.tracked_boxes.empty())
+	if(!collection.tracked_boxes.empty())
 	{
 		float time_interval  = (time - previous_time).toSec();
 		for(int i = 0; i < collection.tracked_boxes.size(); ++i) 
@@ -225,13 +230,6 @@ void Fusion_processing::writeCSV(People& collection, string path, ros::Time time
 					<<box.y<<"\t"
 					<<box.width<<"\t"
 					<<box.height<<"\t"
-					<<pos.x<<"\t"
-					<<pos.y<<"\t"
-					<<pos.z<<"\t"
-					<<pos.top<<"\t"
-					<<pos.height<<"\t"
-					<<pos.area<<"\t"
-					<<pos.area_diff/time_interval<<"\t"
 					<<pos.ratio<<"\t"
 					<<pos.ratio_diff/time_interval<<"\t"
 					<<pos.distance/time_interval<<"\t"
@@ -241,7 +239,10 @@ void Fusion_processing::writeCSV(People& collection, string path, ros::Time time
 					<<pos.y_diff/time_interval<<"\t"
 					<<pos.y_delta/time_interval<<"\t"
 					<<pos.y_norm<<"\t"
-					<<pos.y_norm_diff/time_interval<<
+					<<pos.y_norm_diff/time_interval<<"\t"
+					<<pos.z_diff/time_interval<<"\t"
+					<<abs(pos.z_diff)/time_interval<<"\t"
+					<<pos.depth_std<<
 				endl;
 			}
 			else
@@ -288,13 +289,6 @@ void Fusion_processing::publishResults(People& collection, ros::Time time){
 			box_.rect.y = box.y;
 			box_.rect.width = box.width;
 			box_.rect.height = box.height;
-			box_.pos.x = pos.x;
-			box_.pos.y = pos.y;
-			box_.pos.z = pos.z;
-			box_.pos.top = pos.top;
-			box_.pos.height = pos.height;
-			box_.pos.area = pos.area;
-			box_.pos.area_diff = pos.area_diff;
 			box_.pos.ratio = pos.ratio;
 			box_.pos.ratio_diff = pos.ratio_diff;
 			box_.pos.distance = pos.distance;
@@ -305,6 +299,9 @@ void Fusion_processing::publishResults(People& collection, ros::Time time){
 			box_.pos.y_delta = pos.y_delta/time_interval;
 			box_.pos.y_norm = pos.y_norm;
 			box_.pos.y_norm_diff = pos.y_norm_diff/time_interval;
+			box_.pos.z_diff = pos.z_diff;
+			box_.pos.z_diff_norm = pos.z_diff_norm;
+			box_.pos.depth_std = pos.depth_std;
 			
 			
 			fmsg.boxes.push_back(box_);

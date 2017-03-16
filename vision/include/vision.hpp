@@ -25,15 +25,16 @@ using namespace cv;
 		float x = 0.0;
 		float y = 0.0;
 		float z = 0.0;
-		float top  	   = 0.0;
-		float area 	   = 0.0;
-		float ratio    = 0.0;
-		float y_norm   = 0.0;
-		float height   = 0.0;
-		float distance = 0.0;
+		float area 	    = 0.0;
+		float ratio     = 0.0;
+		float y_norm    = 0.0;
+		float distance  = 0.0;
+		float depth_std = 0.0;
 		
-		float x_diff         = 0.0;
+		float x_diff        = 0.0;
 		float y_diff        = 0.0;
+		float z_diff        = 0.0;
+		float z_diff_norm   = 0.0;
 		float area_diff     = 0.0;
 		float y_norm_diff	= 0.0;
 		float ratio_diff    = 0.0;
@@ -56,13 +57,13 @@ using namespace cv;
 	void track(vector< Rect_<int> >& current, People& collection, int width, int height, int rank = 3, int max_rank = 30);
 	
 	//Depth estimation functions
-	float calculateDepth(Mat& src);
+	float calculateDepth(const Mat& src, Position& pos);
 	double minDepth(vector<double> vec, int number);
 	double centerDepth(const Mat& src, int number);
 	double combineDepth(double saveMin, double saveCenter, double saveCluster, double min_depth = 0.0, double max_depth = 6.0);
 		
 	//Position estimation
-	void calculatePosition(Rect& rect, Position& pos, float depth, int width = 640, int height = 480, int Hfield = 58, int Vfield = 45);
+	void calculatePosition(Rect& rect, Position& pos, int width = 640, int height = 480, int Hfield = 58, int Vfield = 45);
 	
 	//Region growing algorithms
 	void upVerticalFill(Mat& src, float threshold, bool flag);

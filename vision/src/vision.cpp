@@ -344,7 +344,7 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 							x_distance = removal.x - (rect.x + rect.width);
 						
 						
-						float area_thres = max(removal.area(), rect.area());
+						//~ float area_thres = max(removal.area(), rect.area());
 						//~ if((x_distance < width/50) && (all.area() < 2*area_thres))
 						//~ {
 							//~ threshold = 1;
@@ -355,7 +355,7 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 				if(threshold > 0)
 				{
 					float rank_dif = abs(collection.tracked_rankings[a] - collection.tracked_rankings[b])/(collection.tracked_rankings[a] + collection.tracked_rankings[b]);
-					if(rank_dif < 0.8)
+					if(rank_dif > 0.5)
 					{
 						collection.tracked_boxes[a] = all;
 						collection.tracked_boxes[b] = collection.tracked_boxes.back();
@@ -417,7 +417,7 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
  * RETURN: --
  * 
  */
-void calculatePosition(Rect& rect, Position& pos, float depth, int width, int height, int Hfield, int Vfield)
+void calculatePosition(Rect& rect, Position& pos, int width, int height, int Hfield, int Vfield)
 {
 	
 	float hor_x 	= 0.0;
@@ -427,8 +427,7 @@ void calculatePosition(Rect& rect, Position& pos, float depth, int width, int he
 	float hor_focal = 0.0;
 	float ver_focal = 0.0;
 	float distance  = 0.0;
-	float top 		= 0.0;
-	float bottom 	= 0.0;
+	float depth = pos.z;
 	
 	if(depth != 0.0)
 	{
@@ -459,27 +458,6 @@ void calculatePosition(Rect& rect, Position& pos, float depth, int width, int he
 		//Update the position
 		pos.x = hor_x;
 		pos.y = hor_y;
-		pos.z = depth;
-		
-		//Calculate top
-		ver_y = rect.y;
-		if(ver_y > height/2)
-			ver_y = (-1)*(ver_y - height/2);
-		else
-			ver_y = (height/2 - ver_y);
-		top = depth * ver_y / hor_focal;
-		pos.top    = abs(top);
-		
-		//Calculate bottom
-		ver_y = rect.y + rect.height;
-		if(ver_y > height/2)
-			ver_y = (-1)*(ver_y - height/2);
-		else
-			ver_y = (height/2 - ver_y);
-		bottom     = depth * ver_y / hor_focal;
-		
-		//Calculate height
-		pos.height = abs(top - bottom);
 		
 	}
 	

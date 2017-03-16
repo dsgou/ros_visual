@@ -1,10 +1,6 @@
-float32 x
-float32 y
-float32 z
-float32 top
-float32 height
-float32 area 
-float32 area_diff
+float32 depth_std
+float32 z_diff
+float32 z_diff_norm
 float32 ratio 
 float32 ratio_diff
 float32 distance
