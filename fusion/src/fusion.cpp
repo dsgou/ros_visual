@@ -63,10 +63,17 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 	Mat fusion;
 	vector< Rect_<int> > fusion_rects;
 	cv_bridge::CvImagePtr cv_ptr_dif;
-	cv_ptr_dif 	 = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::MONO8);
+	try
+	{
+		cv_ptr_dif 	 = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::MONO8);
+	}
+	catch (cv_bridge::Exception& e)
+	{
+	  ROS_ERROR("cv_bridge exception: %s", e.what());
+	  return;
+	}
 	
-	fusion 	 = (cv_ptr_dif->image).clone();
-	
+	fusion 	 = (cv_ptr_dif->image);
 	int height 	 = (msg->height);
 	int width 	 = (msg->width);
 	
@@ -81,13 +88,11 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 	{
 		for(int i = 0; i < people.tracked_boxes.size(); ++i)
 		{
-			float depth = 0.0;
 			Mat depth_rect = depth_Mat(people.tracked_boxes[i]);
-			
 			try
 			{
-				//Depth
-				depth = calculateDepth(depth_rect, people.tracked_pos[i]);
+				//Calculating depth 
+				float depth = calculateDepth(depth_rect, people.tracked_pos[i]);
 				
 				//Calculating z_diff feature
 				people.tracked_pos[i].z_diff = depth - people.tracked_pos[i].z;
@@ -96,24 +101,8 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 					people.tracked_pos[i].z = depth;
 				
 				//Calculating Std of depth feature
-				//~ double sum = 0.0;
-				//~ for(int i = 0; i < depth_rect.rows; ++i)
-				//~ {
-					//~ double* cur = depth_rect.ptr<double>(i);
-					//~ for(int j = 0; j < depth_rect.cols; ++j)
-					//~ {
-						//~ if(isfinite(cur[j]))
-						//~ {
-							//~ double temp = abs(cur[j] - people.tracked_pos[i].z);
-							//~ cout<<sum<<endl;
-							//~ sum += temp;
-							
-						//~ }
-						
-					//~ }
-				//~ }
-				//~ cout<<sum<<endl;
-				//~ people.tracked_pos[i].depth_std = sum/(depth_rect.rows*depth_rect.cols); 
+				absdiff(depth_rect, people.tracked_pos[i].z, depth_rect);
+				people.tracked_pos[i].depth_std = sum(depth_rect)[0]/(depth_rect.rows*depth_rect.cols); 
 				
 				
 				//Visualize depth mat
@@ -179,7 +168,6 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 	}
 	
 	
-	//~ ros::Time time = cv_ptr_dif->header.stamp;
 	ros::Time time = ros::Time::now();
 	//Write csv file
 	if(write_csv)
@@ -193,9 +181,19 @@ void Fusion_processing::chromaCb(const sensor_msgs::ImageConstPtr& msg)
 void Fusion_processing::depthCb(const sensor_msgs::ImageConstPtr& msg)
 {
 	cv_bridge::CvImagePtr cv_ptr_depth;
+	
+	try
+	{
+		cv_ptr_depth    = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_32FC1);
+		
+	}
+	catch (cv_bridge::Exception& e)
+	{
+	  ROS_ERROR("cv_bridge exception: %s", e.what());
+	  return;
+	}
 	depth_available = true;
-	cv_ptr_depth    = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_32FC1);
-	depth_Mat 		= (cv_ptr_depth->image).clone();
+	depth_Mat 		= (cv_ptr_depth->image);
 }
 
 

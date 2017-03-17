@@ -183,7 +183,7 @@ void detectBlobs(const Mat& src, vector< Rect_<int> >& colour_areas, int range, 
 void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int height, int rank, int max_rank)
 {
 	
-	float step  = 1.2;
+	float step  = 1.5;
 	vector<bool> updates(collection.tracked_boxes.size(), false);
 	if(!cur_boxes.empty())
 	{	
@@ -355,7 +355,8 @@ void track(vector< Rect_<int> >& cur_boxes, People& collection, int width, int h
 				if(threshold > 0)
 				{
 					float rank_dif = abs(collection.tracked_rankings[a] - collection.tracked_rankings[b])/(collection.tracked_rankings[a] + collection.tracked_rankings[b]);
-					if(rank_dif > 0.5)
+					float rank_ratio = (collection.tracked_rankings[a] + collection.tracked_rankings[b])/(max_rank);
+					if(rank_ratio < 1.1)
 					{
 						collection.tracked_boxes[a] = all;
 						collection.tracked_boxes[b] = collection.tracked_boxes.back();

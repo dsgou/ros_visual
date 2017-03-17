@@ -55,7 +55,7 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 	  return;
 	}
 
-	Mat cur_rgb = (cv_ptr->image).clone();
+	Mat cur_rgb = (cv_ptr->image);
 	
 	//~ equalizeHist( cur_rgb, cur_rgb );
 	//~ cur_rgb.convertTo(cur_rgb, -1, 1.2, 0);
@@ -68,14 +68,13 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 	clahe->apply(cur_rgb, cur_rgb);
 
 	// First run variable initialization 
-	if(frameCounter == -1 )
+	if(ref_rgb.rows == 0)
 	{
 		rows 	 = cur_rgb.rows;
 		cols 	 = cur_rgb.cols;
 		channels = cur_rgb.channels();
 		size 	 = rows*cols*channels;
 		ref_rgb  = cur_rgb.clone();
-		
 	}
 	
 	//Calculating image difference between the current and previous images
@@ -152,7 +151,6 @@ void Chroma_processing::imageCb(const sensor_msgs::ImageConstPtr& msg)
 	//Publish image difference
 	cv_ptr->image = dif_rgb;
 	image_pub_dif.publish(cv_ptr->toImageMsg());
-	++frameCounter;
 }
 
 int main(int argc, char** argv)

@@ -56,7 +56,6 @@ class Chroma_processing
 		int size;
 		int channels;
 		int interval = 5;
-		int frameCounter = -1;
 		int myThreshold  = 100;
 		float backFactor = 0.80;
 		

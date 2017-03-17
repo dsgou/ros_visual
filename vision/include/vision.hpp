@@ -57,7 +57,7 @@ using namespace cv;
 	void track(vector< Rect_<int> >& current, People& collection, int width, int height, int rank = 3, int max_rank = 30);
 	
 	//Depth estimation functions
-	float calculateDepth(const Mat& src, Position& pos);
+	float  calculateDepth(const Mat& src, Position& pos);
 	double minDepth(vector<double> vec, int number);
 	double centerDepth(const Mat& src, int number);
 	double combineDepth(double saveMin, double saveCenter, double saveCluster, double min_depth = 0.0, double max_depth = 6.0);
