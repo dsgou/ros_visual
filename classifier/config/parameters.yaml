@@ -1,3 +1,2 @@
-svm_path    : "/include/GB_B1_3000"
+svm_path    : "/include/GB_Classifier_Radio"
 input_topic : "fusion/results"
-fps         : 3

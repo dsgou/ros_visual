@@ -57,7 +57,10 @@ def callback(data):
         data.boxes[0].pos.y_diff,
         data.boxes[0].pos.y_delta,
         data.boxes[0].pos.y_norm,
-        data.boxes[0].pos.y_norm_diff
+        data.boxes[0].pos.y_norm_diff,
+        data.boxes[0].pos.depth_std,
+        data.boxes[0].pos.z_diff,
+        data.boxes[0].pos.z_diff_norm
     ])
     curFV = (fv - Mean) / Std                
     [Result, P] = audioTrainTest.classifierWrapper(SVM, "gradientboosting", curFV) 
@@ -76,7 +79,7 @@ def callback(data):
 if __name__ == '__main__':
     global SVM, Mean, Std, ClassNames, fps, publisher, dicti
     rospy.init_node('classifier')
-    fps         = rospy.get_param('~fps')
+    fps         = int(rospy.get_param('~fps')/10)
     svm_path    = rospy.get_param('~svm_path')
     path        = rospy.get_param('~classifier_path')
     input_topic = rospy.get_param('~input_topic')
