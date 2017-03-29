@@ -1,0 +1,23 @@
+<launch>
+	<arg name="image_topic"  default="/camera/rgb/image_raw"/>
+	<arg name="depth_topic"  default="/camera/depth/image_raw"/>
+	<arg name="project_path" default="$(find ros_visual)" />
+	<arg name="playback_topics"  default="false"/>
+	<arg name="write_csv"  default="false"/>
+	<arg name="display"  default="false"/>
+	<arg name="min_depth"  default="0"/>
+	<arg name="max_depth"  default="6000"/>
+	
+
+	<node pkg="fusion" type="fusion" name="fusion" output="screen">
+		<param name="project_path" value="$(arg project_path)"/>
+		<param name="image_topic" value="$(arg image_topic)" />
+		<param name="depth_topic" value="$(arg depth_topic)" />
+		<param name="max_depth"  value="$(arg max_depth)"/>
+		<param name="min_depth"  value="$(arg min_depth)"/>
+		<param name="playback_topics" type="bool" value="$(arg playback_topics)"/>
+		<param name="write_csv" type="bool" value="$(arg write_csv)"/>
+		<param name="display" type="bool" value="$(arg display)"/>
+	</node>
+</launch>
+

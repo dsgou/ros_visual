@@ -1,0 +1,26 @@
+<launch>
+	<arg name="image_topic"/>
+	<arg name="results"/>
+	<arg name="depth_topic"/>
+	<arg name="depth_dif_topic"/>
+	<arg name="image_dif_topic"/>
+	<arg name="project_path"/>
+	<arg name="playback_topics"/>
+	<arg name="display"/>
+	<arg name="min_depth"/>
+	<arg name="max_depth"/>
+	<arg name="write_csv"/>
+
+	<node pkg="fusion" type="fusion" name="fusion" output="screen">
+		<param name="project_path" value="$(arg project_path)"/>
+		<param name="results" value="$(arg results)"/>
+		<param name="image_topic" value="$(arg image_topic)" />
+		<param name="depth_topic" value="$(arg depth_topic)" />
+		<param name="image_dif_topic" value="$(arg image_dif_topic)" />
+		<param name="min_depth"  value="$(arg min_depth)"/>
+		<param name="min_depth"  value="$(arg min_depth)"/>
+		<param name="playback_topics" type="bool" value="$(arg playback_topics)"/>
+		<param name="write_csv" type="bool" value="$(arg write_csv)"/>
+		<param name="display" type="bool" value="$(arg display)"/>
+	</node>
+</launch>

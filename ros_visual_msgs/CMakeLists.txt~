@@ -12,36 +12,29 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   std_msgs
-  ros_visual_msgs
-  vision
 )
 
-find_package(Boost  COMPONENTS filesystem)
+find_package(OpenCV REQUIRED)
 
-catkin_package(CATKIN_DEPENDS std_msgs)
+catkin_package()
 
 aux_source_directory(src/ SRC_LIST)
 
 include_directories(
   include
-  /usr/include/
   ${catkin_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
-  ${vision_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
-link_directories(
-  /usr/lib/
-  /usr/local/lib/ 
-  /usr/lib/x86_64-linux-gnu/ 
-)
+set(EXTERNAL_LIBS alglib)
 
 add_executable(fusion ${SRC_LIST})
 
+link_directories(/usr/include /usr/lib/x86_64-linux-gnu/)
 
 target_link_libraries(${PROJECT_NAME} 
   ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${vision_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${EXTERNAL_LIBS}
 )
 
