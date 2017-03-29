@@ -21,8 +21,8 @@
 #include <utility.hpp>
 #include <vision.hpp>
 
-#include <fusion/FusionMsg.h>
-#include <fusion/Box.h>
+#include <ros_visual_msgs/FusionMsg.h>
+#include <ros_visual_msgs//Box.h>
 
 using namespace std;
 using namespace cv;

@@ -34,7 +34,7 @@ Fusion_processing::Fusion_processing()
     image_sub = it_.subscribe(image_dif_topic, 1, &Fusion_processing::chromaCb, this);
     
     
-    results_publisher = local_nh.advertise<fusion::FusionMsg>(results_topic, 1);
+    results_publisher = local_nh.advertise<ros_visual_msgs::FusionMsg>(results_topic, 1);
 	
 	if(create_directory)
     {
@@ -269,7 +269,7 @@ void Fusion_processing::writeCSV(People& collection, string path, ros::Time time
 void Fusion_processing::publishResults(People& collection, ros::Time time){
 	if (!collection.tracked_boxes.empty())
 	{
-		fusion::FusionMsg fmsg;
+		ros_visual_msgs::FusionMsg fmsg;
 
 		fmsg.header.stamp = time;
 		fmsg.header.frame_id = camera_frame;
@@ -280,7 +280,7 @@ void Fusion_processing::publishResults(People& collection, ros::Time time){
 			Rect box = collection.tracked_boxes[i];
 			Position pos = collection.tracked_pos[i];
 			
-			fusion::Box box_;
+			ros_visual_msgs::Box box_;
 			
 			box_.id = i;
 			box_.rect.x = box.x;

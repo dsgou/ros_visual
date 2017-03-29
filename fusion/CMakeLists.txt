@@ -12,27 +12,13 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   std_msgs
-  message_generation
+  ros_visual_msgs
   vision
-)
-
-add_message_files(
-  FILES
-  Position.msg
-  Rectangle.msg
-  Box.msg
-  FusionMsg.msg
 )
 
 find_package(Boost  COMPONENTS filesystem)
 
-generate_messages(
-	DEPENDENCIES
- 	 sensor_msgs
-	std_msgs
-)
-
-catkin_package(CATKIN_DEPENDS message_runtime std_msgs)
+catkin_package(CATKIN_DEPENDS std_msgs)
 
 aux_source_directory(src/ SRC_LIST)
 

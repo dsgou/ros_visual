@@ -87,7 +87,7 @@ float calculateDepth(const Mat& src, Position& pos)
 	float depth= 0.0;
 	float dif = 1000.0;
 	float temp_depth = 0.0;
-	int occur[clusters] = {};
+	int occur[clusters];
 	int row_start = src.rows/4;
 	int col_start = src.cols/4;
 	
