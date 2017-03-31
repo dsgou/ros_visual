@@ -6,7 +6,7 @@ import cPickle
 import sklearn
 import operator
 from std_msgs.msg import String
-from fusion.msg import FusionMsg
+from ros_visual_msgs.msg import FusionMsg
 from pyAudioAnalysis import audioTrainTest
 
 global SVM 
